@@ -1,0 +1,234 @@
+.page {
+  padding: var(--space-lg);
+  padding-bottom: var(--space-3xl);
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: var(--space-2xl);
+}
+
+.header h1 {
+  font-size: 2rem;
+  margin-bottom: var(--space-sm);
+}
+
+.header p {
+  font-size: 1.125rem;
+  color: var(--color-text-secondary);
+}
+
+.loading {
+  text-align: center;
+  padding: var(--space-3xl);
+  color: var(--color-text-tertiary);
+}
+
+.section {
+  margin-bottom: var(--space-2xl);
+}
+
+.sectionTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: var(--space-xs);
+}
+
+.sectionDesc {
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-lg);
+}
+
+/* Experience Level */
+.experienceGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-md);
+}
+
+.experienceCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--space-xl);
+  background: var(--color-bg-secondary);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.experienceCard:hover {
+  border-color: var(--color-border-hover);
+  transform: translateY(-2px);
+}
+
+.experienceCardActive {
+  border-color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+.experienceIcon {
+  font-size: 2.5rem;
+  margin-bottom: var(--space-sm);
+}
+
+.experienceCard h3 {
+  font-size: 1rem;
+  margin-bottom: var(--space-xs);
+}
+
+.experienceCard p {
+  font-size: 0.8125rem;
+  color: var(--color-text-tertiary);
+}
+
+/* Skills Grid */
+.skillGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.skillBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  color: var(--color-text-secondary);
+}
+
+.skillBtn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.skillBtnActive {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+.skillBtnActive:hover {
+  background: var(--color-primary-hover);
+}
+
+/* Topics Grid */
+.topicGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.topicBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  color: var(--color-text-secondary);
+}
+
+.topicBtn:hover {
+  border-color: var(--color-secondary);
+  color: var(--color-secondary);
+}
+
+.topicBtnActive {
+  background: var(--color-secondary);
+  border-color: var(--color-secondary);
+  color: white;
+}
+
+.topicBtnActive:hover {
+  background: var(--color-secondary-hover);
+}
+
+.checkmark {
+  font-size: 0.75rem;
+}
+
+/* Summary */
+.summary {
+  position: sticky;
+  bottom: var(--space-lg);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-xl);
+}
+
+.summaryContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-lg);
+}
+
+.summaryStats {
+  display: flex;
+  gap: var(--space-xl);
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.statNumber {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.statLabel {
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary);
+}
+
+.saveBtn {
+  min-width: 180px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .experienceGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .summaryContent {
+    flex-direction: column;
+  }
+
+  .summaryStats {
+    width: 100%;
+    justify-content: space-around;
+  }
+
+  .saveBtn {
+    width: 100%;
+  }
+}

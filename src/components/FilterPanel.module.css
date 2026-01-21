@@ -1,0 +1,201 @@
+.panel {
+  position: relative;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-lg);
+  height: fit-content;
+  position: sticky;
+  top: calc(var(--header-height) + var(--banner-height, 32px) + var(--space-lg));
+}
+
+/* Corner Brackets */
+.panel::before,
+.panel::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-color: var(--color-border-hover);
+  border-style: solid;
+  transition: all var(--transition-fast);
+  pointer-events: none;
+}
+
+.panel::before {
+  top: 8px;
+  left: 8px;
+  border-width: 2px 0 0 2px;
+}
+
+.panel::after {
+  top: 8px;
+  right: 8px;
+  border-width: 2px 2px 0 0;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-md);
+}
+
+.title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.toggleBtn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: 500;
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.toggleBtn:hover {
+  background: rgba(139, 92, 246, 0.1);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.label {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--color-accent-orange);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.select {
+  padding: var(--space-sm) var(--space-md);
+  font-size: 0.9375rem;
+  font-family: inherit;
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+}
+
+.starOptions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.starBtn {
+  padding: var(--space-xs) var(--space-sm);
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.starBtn:hover {
+  background: rgba(139, 92, 246, 0.1);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.starBtnActive {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+.starBtnActive:hover {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+.topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.topicBtn {
+  padding: 0.125rem var(--space-sm);
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.topicBtn:hover {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.topicBtnActive {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+.topicBtnActive:hover {
+  background: var(--color-primary-hover);
+}
+
+.clearBtn {
+  padding: var(--space-sm) var(--space-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  background: transparent;
+  border: 1px solid var(--color-accent-red);
+  border-radius: var(--radius-md);
+  color: var(--color-accent-red);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.clearBtn:hover {
+  background: var(--color-accent-red);
+  color: white;
+}
+
+@media (max-width: 1024px) {
+  .panel {
+    position: static;
+  }
+}

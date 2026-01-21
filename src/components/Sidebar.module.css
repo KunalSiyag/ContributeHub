@@ -1,0 +1,222 @@
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 240px;
+  background: var(--color-bg-secondary);
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  transition: width var(--transition-base);
+}
+
+.sidebar.collapsed {
+  width: 64px;
+}
+
+/* Logo Section */
+.logoSection {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--color-border);
+  min-height: 64px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  text-decoration: none;
+  color: var(--color-text-primary);
+}
+
+.logoIcon {
+  font-size: 1.5rem;
+  color: var(--color-primary);
+}
+
+.logoText {
+  font-size: 1rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.collapseBtn {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.collapseBtn:hover {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+}
+
+/* Navigation */
+.nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-md) 0;
+}
+
+.navSection {
+  padding: var(--space-sm) var(--space-md);
+}
+
+.sectionLabel {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--color-text-tertiary);
+  padding: var(--space-sm) var(--space-md);
+  text-transform: uppercase;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.navItem:hover {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+}
+
+.navItem.active {
+  background: var(--color-bg-tertiary);
+  color: var(--color-primary);
+}
+
+.navItem.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 3px;
+  height: 24px;
+  background: var(--color-primary);
+  border-radius: 0 2px 2px 0;
+}
+
+.navIcon {
+  font-size: 1.125rem;
+  width: 24px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.navLabel {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* User Section */
+.userSection {
+  padding: var(--space-md);
+  border-top: 1px solid var(--color-border);
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.userAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+}
+
+.userDetails {
+  flex: 1;
+  min-width: 0;
+}
+
+.userName {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.signOutBtn {
+  font-size: 0.6875rem;
+  color: var(--color-text-tertiary);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.signOutBtn:hover {
+  color: var(--color-accent-red);
+}
+
+.loginBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.loginBtn:hover {
+  background: var(--color-primary-hover);
+  box-shadow: var(--shadow-glow-sm);
+}
+
+.loading {
+  text-align: center;
+  color: var(--color-text-tertiary);
+}
+
+/* Collapsed state adjustments */
+.collapsed .navItem {
+  justify-content: center;
+  padding: var(--space-sm);
+}
+
+.collapsed .navIcon {
+  width: auto;
+}
+
+.collapsed .loginBtn {
+  padding: var(--space-sm);
+}

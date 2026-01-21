@@ -1,0 +1,127 @@
+.sidebar {
+  position: relative;
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-xl);
+  padding: var(--space-lg);
+  border: 1px solid var(--color-border);
+  height: fit-content;
+  position: sticky;
+  top: calc(var(--header-height) + var(--banner-height, 32px) + var(--space-lg));
+}
+
+/* Corner Brackets */
+.sidebar::before,
+.sidebar::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-color: var(--color-border-hover);
+  border-style: solid;
+  transition: all var(--transition-fast);
+  pointer-events: none;
+}
+
+.sidebar::before {
+  top: 8px;
+  left: 8px;
+  border-width: 2px 0 0 2px;
+}
+
+.sidebar::after {
+  top: 8px;
+  right: 8px;
+  border-width: 2px 2px 0 0;
+}
+
+.sidebar:hover::before,
+.sidebar:hover::after {
+  border-color: var(--color-primary);
+}
+
+.titleLabel {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent-orange);
+  margin-bottom: var(--space-xs);
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: var(--space-md);
+  color: var(--color-text-primary);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  text-decoration: none;
+  padding: var(--space-sm);
+  margin: 0 calc(-1 * var(--space-sm)); /* Negative margin for hover effect */
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.item:hover {
+  background-color: var(--color-bg-tertiary);
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.05);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.category {
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary);
+}
+
+.name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.meta {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+}
+
+.dots {
+  color: var(--color-text-tertiary);
+  font-size: 1rem;
+  padding: 0 var(--space-xs);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.item:hover .dots {
+  opacity: 1;
+}
+
+.showMore {
+  display: block;
+  margin-top: var(--space-md);
+  font-size: 0.9375rem;
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.showMore:hover {
+  color: var(--color-primary-hover);
+  text-decoration: underline;
+}
