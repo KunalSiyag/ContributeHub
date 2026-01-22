@@ -11,28 +11,38 @@ import styles from '../app/page.module.css';
 
 gsap.registerPlugin(useGSAP);
 
+// Types for props
+interface PlatformStats {
+  totalUsers: number;
+  totalIssues: number;
+  totalPRs: number;
+  totalBounties: number;
+}
+
+interface Contributor {
+  id: string;
+  username: string;
+  avatar_url: string;
+  contribution_count: number;
+}
+
 interface HomeClientProps {
   trendingRepos: Repository[];
   beginnerIssues: Issue[];
   events: ContributionEvent[];
+  stats: PlatformStats;
+  activeContributors: Contributor[];
+  bountyIssues: Issue[];
 }
 
-// Mock active contributors (would come from Supabase in production)
-const activeContributors = [
-  { id: 1, name: 'Sarah Chen', avatar: 'https://i.pravatar.cc/150?img=5', prs: 23 },
-  { id: 2, name: 'Alex Kim', avatar: 'https://i.pravatar.cc/150?img=12', prs: 18 },
-  { id: 3, name: 'Jordan Lee', avatar: 'https://i.pravatar.cc/150?img=8', prs: 15 },
-  { id: 4, name: 'Riley Taylor', avatar: 'https://i.pravatar.cc/150?img=20', prs: 12 },
-];
-
-// Mock bounty issues
-const bountyIssues = [
-  { id: 1, title: 'Add dark mode support', repo: 'ossium/web', bounty: '$100', source: 'github' },
-  { id: 2, title: 'Fix memory leak in parser', repo: 'rust-lang/rust', bounty: '$250', source: 'gitcoin' },
-  { id: 3, title: 'Implement OAuth2 flow', repo: 'supabase/auth', bounty: '$150', source: 'github' },
-];
-
-export default function HomeClient({ trendingRepos, beginnerIssues, events }: HomeClientProps) {
+export default function HomeClient({ 
+  trendingRepos, 
+  beginnerIssues, 
+  events,
+  stats,
+  activeContributors,
+  bountyIssues,
+}: HomeClientProps) {
   const container = useRef<HTMLDivElement>(null);
 
   useGSAP(() => {
@@ -57,6 +67,17 @@ export default function HomeClient({ trendingRepos, beginnerIssues, events }: Ho
 
   }, { scope: container });
 
+  // Format numbers for display
+  const formatNumber = (num: number): string => {
+    if (num >= 1000) return `${(num / 1000).toFixed(1)}K+`;
+    return num.toString();
+  };
+
+  const formatCurrency = (num: number): string => {
+    if (num >= 1000) return `$${(num / 1000).toFixed(1)}K`;
+    return `$${num}`;
+  };
+
   return (
     <div ref={container} className={styles.homePage}>
       {/* Hero Section */}
@@ -79,19 +100,19 @@ export default function HomeClient({ trendingRepos, beginnerIssues, events }: Ho
             </Link>
           </div>
           
-          {/* Stats */}
+          {/* Real Stats */}
           <div className={styles.heroStats}>
             <div className={styles.stat}>
-              <span className={styles.statNumber}>50K+</span>
-              <span className={styles.statLabel}>Projects</span>
-            </div>
-            <div className={styles.stat}>
-              <span className={styles.statNumber}>10K+</span>
+              <span className={styles.statNumber}>{formatNumber(stats.totalUsers || 0)}</span>
               <span className={styles.statLabel}>Contributors</span>
             </div>
             <div className={styles.stat}>
-              <span className={styles.statNumber}>$25K+</span>
-              <span className={styles.statLabel}>Bounties</span>
+              <span className={styles.statNumber}>{formatNumber(stats.totalIssues || 0)}</span>
+              <span className={styles.statLabel}>Issues Tracked</span>
+            </div>
+            <div className={styles.stat}>
+              <span className={styles.statNumber}>{formatNumber(stats.totalPRs || 0)}</span>
+              <span className={styles.statLabel}>PRs Submitted</span>
             </div>
           </div>
         </div>
@@ -124,47 +145,68 @@ export default function HomeClient({ trendingRepos, beginnerIssues, events }: Ho
         </div>
       </section>
 
-      {/* Bounty Issues Section */}
+      {/* Bounty Issues Section - Real Data */}
       <section className={styles.section}>
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>💰 Bounty Issues</h2>
-          <div className={styles.bountyTabs}>
-            <button className={`${styles.tab} ${styles.active}`}>All</button>
-            <button className={styles.tab}>GitHub</button>
-            <button className={styles.tab}>Gitcoin</button>
+          <Link href="/bounties" className={styles.viewAllLink}>View all →</Link>
+        </div>
+        {bountyIssues.length > 0 ? (
+          <div className={styles.bountyGrid}>
+            {bountyIssues.slice(0, 3).map(issue => {
+              const repoMatch = issue.repository_url?.match(/repos\/(.+)/);
+              const repoName = repoMatch ? repoMatch[1] : 'Unknown';
+              const bountyLabel = issue.labels.find(l => 
+                l.name.toLowerCase().includes('bounty') || l.name.includes('💰')
+              );
+              
+              return (
+                <a 
+                  key={issue.id} 
+                  href={issue.html_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.bountyCard}
+                >
+                  <div className={styles.bountyBadge}>
+                    {bountyLabel?.name || '💰 Bounty'}
+                  </div>
+                  <h3 className={styles.bountyTitle}>{issue.title}</h3>
+                  <span className={styles.bountyRepo}>{repoName}</span>
+                  <span className={styles.bountySource}>GitHub</span>
+                </a>
+              );
+            })}
           </div>
-        </div>
-        <div className={styles.bountyGrid}>
-          {bountyIssues.map(issue => (
-            <div key={issue.id} className={styles.bountyCard}>
-              <div className={styles.bountyBadge}>{issue.bounty}</div>
-              <h3 className={styles.bountyTitle}>{issue.title}</h3>
-              <span className={styles.bountyRepo}>{issue.repo}</span>
-              <span className={styles.bountySource}>{issue.source}</span>
-            </div>
-          ))}
-        </div>
-        <Link href="/bounties" className={styles.viewAllLink}>
-          View all bounties →
-        </Link>
+        ) : (
+          <div className={styles.emptyState}>
+            <p>No bounty issues available right now. Check back soon!</p>
+          </div>
+        )}
       </section>
 
-      {/* Active Contributors */}
+      {/* Active Contributors - Real Data */}
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>🔥 Active Contributors</h2>
-        <div className={styles.contributorsGrid}>
-          {activeContributors.map(contributor => (
-            <div key={contributor.id} className={styles.contributorCard}>
-              <img 
-                src={contributor.avatar} 
-                alt={contributor.name} 
-                className={styles.contributorAvatar}
-              />
-              <span className={styles.contributorName}>{contributor.name}</span>
-              <span className={styles.contributorPrs}>{contributor.prs} PRs</span>
-            </div>
-          ))}
-        </div>
+        {activeContributors.length > 0 ? (
+          <div className={styles.contributorsGrid}>
+            {activeContributors.slice(0, 4).map(contributor => (
+              <div key={contributor.id} className={styles.contributorCard}>
+                <img 
+                  src={contributor.avatar_url} 
+                  alt={contributor.username} 
+                  className={styles.contributorAvatar}
+                />
+                <span className={styles.contributorName}>{contributor.username}</span>
+                <span className={styles.contributorPrs}>{contributor.contribution_count} actions</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className={styles.emptyState}>
+            <p>Be the first contributor! Sign in and start tracking issues.</p>
+          </div>
+        )}
       </section>
 
       {/* Events Section */}

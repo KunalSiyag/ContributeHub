@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIssueManagement, IssueStatus } from '@/hooks/useIssueManagement';
 import styles from './IssueActions.module.css';
@@ -29,10 +29,33 @@ const STATUS_OPTIONS: { value: IssueStatus; label: string; icon: string }[] = [
 
 export default function IssueActions({ issue, initialStatus, onStatusChange }: IssueActionsProps) {
   const { user } = useAuth();
-  const { saveIssue, updateStatus, removeIssue, loading } = useIssueManagement();
+  const { saveIssue, updateStatus, removeIssue, isIssueTracked, loading } = useIssueManagement();
   const [status, setStatus] = useState<IssueStatus | null>(initialStatus || null);
   const [issueId, setIssueId] = useState<string | null>(null);
   const [showMenu, setShowMenu] = useState(false);
+  const [checking, setChecking] = useState(false);
+
+  // Check if issue is already tracked when component mounts
+  useEffect(() => {
+    const checkTracked = async () => {
+      if (!user || !issue.url) return;
+      
+      setChecking(true);
+      try {
+        const tracked = await isIssueTracked(issue.url);
+        if (tracked) {
+          setIssueId(tracked.id);
+          setStatus(tracked.status as IssueStatus);
+        }
+      } catch (err) {
+        console.error('Error checking if issue is tracked:', err);
+      } finally {
+        setChecking(false);
+      }
+    };
+
+    checkTracked();
+  }, [user, issue.url, isIssueTracked]);
 
   const handleSave = async () => {
     const result = await saveIssue(issue);

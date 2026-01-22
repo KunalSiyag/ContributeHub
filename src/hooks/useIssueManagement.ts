@@ -173,19 +173,24 @@ export function useIssueManagement() {
   }, [user, supabase]);
 
   // Check if issue is tracked
-  const isIssueTracked = useCallback(async (issueUrl: string) => {
+  const isIssueTracked = useCallback(async (issueUrl: string): Promise<{ id: string; status: string } | null> => {
     if (!user) return null;
 
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('tracked_issues')
         .select('id, status')
         .eq('user_id', user.id)
         .eq('issue_url', issueUrl)
-        .single();
+        .maybeSingle(); // Use maybeSingle instead of single to avoid 406 when not found
 
+      if (error) {
+        console.error('Error checking tracked issue:', error.message);
+        return null;
+      }
       return data;
-    } catch {
+    } catch (err) {
+      console.error('Exception in isIssueTracked:', err);
       return null;
     }
   }, [user, supabase]);

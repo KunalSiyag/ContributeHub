@@ -129,7 +129,7 @@ export interface Database {
         };
       };
       
-      // Tracked Issues
+      // Tracked Issues (with bounty support)
       tracked_issues: {
         Row: {
           id: string;
@@ -138,7 +138,12 @@ export interface Database {
           issue_number: number;
           repo_full_name: string;
           title: string;
-          status: 'open' | 'in_progress' | 'closed';
+          description: string | null;
+          labels: string[];
+          status: 'saved' | 'ongoing' | 'pr_submitted' | 'completed';
+          has_bounty: boolean;
+          bounty_amount: string | null;
+          bounty_source: string | null;
           notes: string | null;
           created_at: string;
           updated_at: string;
@@ -150,7 +155,12 @@ export interface Database {
           issue_number: number;
           repo_full_name: string;
           title: string;
-          status?: 'open' | 'in_progress' | 'closed';
+          description?: string | null;
+          labels?: string[];
+          status?: 'saved' | 'ongoing' | 'pr_submitted' | 'completed';
+          has_bounty?: boolean;
+          bounty_amount?: string | null;
+          bounty_source?: string | null;
           notes?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -162,15 +172,56 @@ export interface Database {
           issue_number?: number;
           repo_full_name?: string;
           title?: string;
-          status?: 'open' | 'in_progress' | 'closed';
+          description?: string | null;
+          labels?: string[];
+          status?: 'saved' | 'ongoing' | 'pr_submitted' | 'completed';
+          has_bounty?: boolean;
+          bounty_amount?: string | null;
+          bounty_source?: string | null;
           notes?: string | null;
           created_at?: string;
           updated_at?: string;
         };
       };
+      
+      // User Activity tracking
+      user_activity: {
+        Row: {
+          id: string;
+          user_id: string;
+          action_type: 'login' | 'issue_save' | 'pr_submit' | 'repo_save';
+          metadata: Record<string, unknown>;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          action_type: 'login' | 'issue_save' | 'pr_submit' | 'repo_save';
+          metadata?: Record<string, unknown>;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          action_type?: 'login' | 'issue_save' | 'pr_submit' | 'repo_save';
+          metadata?: Record<string, unknown>;
+          created_at?: string;
+        };
+      };
     };
     Views: {};
-    Functions: {};
+    Functions: {
+      get_active_contributors: {
+        Args: { limit_count: number };
+        Returns: {
+          user_id: string;
+          username: string | null;
+          avatar_url: string | null;
+          action_count: number;
+          last_active: string;
+        }[];
+      };
+    };
     Enums: {};
   };
 }

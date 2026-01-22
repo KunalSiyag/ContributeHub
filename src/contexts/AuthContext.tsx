@@ -30,10 +30,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle(); // Use maybeSingle to avoid 406 when profile doesn't exist
       
       if (error) {
-        console.log('Profile fetch:', error.message);
+        console.log('Profile fetch error:', error.message);
         return null;
       }
       return data;

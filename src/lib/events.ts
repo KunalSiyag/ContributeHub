@@ -248,6 +248,7 @@ export interface EventOrganization {
   language: string;
   topics: string[];
   eventLabel: string;
+  participationYears?: number[]; // Years the org participated in GSSoC/events
 }
 
 export const GSSOC_ORGANIZATIONS: EventOrganization[] = [
@@ -260,6 +261,7 @@ export const GSSOC_ORGANIZATIONS: EventOrganization[] = [
     language: 'TypeScript',
     topics: ['react', 'nextjs', 'hacktoberfest', 'gssoc'],
     eventLabel: 'gssoc',
+    participationYears: [2022, 2023, 2024],
   },
   {
     name: 'Rocket.Chat',
@@ -270,6 +272,7 @@ export const GSSOC_ORGANIZATIONS: EventOrganization[] = [
     language: 'TypeScript',
     topics: ['nodejs', 'react', 'meteor', 'gssoc'],
     eventLabel: 'gssoc',
+    participationYears: [2021, 2022, 2023, 2024],
   },
   {
     name: 'OpenMRS',
@@ -280,6 +283,7 @@ export const GSSOC_ORGANIZATIONS: EventOrganization[] = [
     language: 'Java',
     topics: ['healthcare', 'emr', 'gssoc', 'gsoc'],
     eventLabel: 'gssoc',
+    participationYears: [2020, 2021, 2022, 2023, 2024],
   },
   {
     name: 'Graphite',
@@ -290,6 +294,7 @@ export const GSSOC_ORGANIZATIONS: EventOrganization[] = [
     language: 'Python',
     topics: ['monitoring', 'metrics', 'graphing', 'gssoc'],
     eventLabel: 'gssoc',
+    participationYears: [2023, 2024],
   },
   {
     name: 'FreeCodeCamp',

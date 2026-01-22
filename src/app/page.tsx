@@ -1,34 +1,84 @@
-import { getTrendingRepositories, getBeginnerIssues } from '@/lib/github';
+import { getTrendingRepositories, getBeginnerIssues, searchIssues } from '@/lib/github';
 import { getActiveOrUpcomingEvents } from '@/lib/events';
 import { Repository, Issue } from '@/types';
 import HomeClient from '@/components/HomeClient';
 
-export default async function Home() {
-  // Fetch data on the server
-  let trendingRepos: Repository[] = [];
-  let beginnerIssues: Issue[] = [];
+// Types for real data
+interface PlatformStats {
+  totalUsers: number;
+  totalIssues: number;
+  totalPRs: number;
+  totalBounties: number;
+}
 
+interface Contributor {
+  id: string;
+  username: string;
+  avatar_url: string;
+  contribution_count: number;
+}
+
+async function getStats(): Promise<PlatformStats> {
   try {
-    const [reposResponse, issuesResponse] = await Promise.all([
-      getTrendingRepositories(),
-      getBeginnerIssues(),
-    ]);
-    trendingRepos = reposResponse.items || [];
-    beginnerIssues = issuesResponse.items || [];
-  } catch (error) {
-    console.error('Failed to fetch data:', error);
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const res = await fetch(`${baseUrl}/api/stats`, { next: { revalidate: 300 } });
+    if (!res.ok) throw new Error('Failed to fetch stats');
+    return res.json();
+  } catch {
+    return { totalUsers: 0, totalIssues: 0, totalPRs: 0, totalBounties: 0 };
   }
+}
 
-  // Get active or upcoming events
+async function getActiveContributors(): Promise<Contributor[]> {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const res = await fetch(`${baseUrl}/api/contributors`, { next: { revalidate: 300 } });
+    if (!res.ok) throw new Error('Failed to fetch contributors');
+    const data = await res.json();
+    return data.contributors || [];
+  } catch {
+    return [];
+  }
+}
+
+async function getBountyIssues(): Promise<Issue[]> {
+  try {
+    // Search for issues with bounty-related labels
+    const response = await searchIssues({
+      labels: ['bounty'],
+      state: 'open',
+      sort: 'created',
+      order: 'desc',
+      perPage: 6,
+    });
+    return response.items || [];
+  } catch {
+    return [];
+  }
+}
+
+export default async function Home() {
+  // Fetch all data in parallel
+  const [reposResponse, issuesResponse, stats, contributors, bountyIssues] = await Promise.all([
+    getTrendingRepositories().catch(() => ({ items: [] })),
+    getBeginnerIssues().catch(() => ({ items: [] })),
+    getStats(),
+    getActiveContributors(),
+    getBountyIssues(),
+  ]);
+
+  const trendingRepos: Repository[] = reposResponse.items || [];
+  const beginnerIssues: Issue[] = issuesResponse.items || [];
   const events = getActiveOrUpcomingEvents();
 
-  // Pass data to Client Component for rendering & animation
   return (
     <HomeClient 
       trendingRepos={trendingRepos} 
       beginnerIssues={beginnerIssues}
       events={events}
+      stats={stats}
+      activeContributors={contributors}
+      bountyIssues={bountyIssues}
     />
   );
 }
-

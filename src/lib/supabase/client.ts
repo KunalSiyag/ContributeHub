@@ -1,5 +1,4 @@
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@/types/database';
 
 // Custom cookie storage adapter for PKCE
 // This stores the code_verifier in cookies so it persists across OAuth redirects
@@ -32,12 +31,13 @@ const cookieStorage = {
   },
 };
 
-let supabaseClient: ReturnType<typeof createSupabaseClient<Database>> | null = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let supabaseClient: any = null;
 
 export function createClient() {
   if (typeof window === 'undefined') {
-    // Return a new client for server-side (will be replaced by server.ts usage)
-    return createSupabaseClient<Database>(
+    // Return a new client for server-side
+    return createSupabaseClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
@@ -45,7 +45,7 @@ export function createClient() {
   
   if (supabaseClient) return supabaseClient;
   
-  supabaseClient = createSupabaseClient<Database>(
+  supabaseClient = createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -62,3 +62,4 @@ export function createClient() {
   
   return supabaseClient;
 }
+

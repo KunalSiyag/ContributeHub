@@ -21,6 +21,20 @@ export default function OrganizationCard({ org }: OrganizationCardProps) {
   
   const langColor = languageColors[org.language] || '#6e7681';
 
+  // Format participation years
+  const formatYears = (years?: number[]): string | null => {
+    if (!years || years.length === 0) return null;
+    if (years.length === 1) return `${years[0]}`;
+    // Show range or individual years
+    const sorted = [...years].sort((a, b) => a - b);
+    if (sorted.length > 2) {
+      return `${sorted[0]}-${sorted[sorted.length - 1]}`;
+    }
+    return sorted.join(', ');
+  };
+
+  const yearsDisplay = formatYears(org.participationYears);
+
   return (
     <a 
       href={repoUrl}
@@ -31,7 +45,14 @@ export default function OrganizationCard({ org }: OrganizationCardProps) {
       {/* Header with Name */}
       <div className={styles.header}>
         <h3 className={styles.name}>{org.name}</h3>
-        <div className={styles.eventBadge}>{org.eventLabel.toUpperCase()}</div>
+        <div className={styles.badges}>
+          <div className={styles.eventBadge}>{org.eventLabel.toUpperCase()}</div>
+          {yearsDisplay && (
+            <div className={styles.yearBadge} title={`Participated in ${org.participationYears?.join(', ')}`}>
+              📅 {yearsDisplay}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Description - shows on hover */}
