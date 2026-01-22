@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode, useMemo, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { User } from '@supabase/supabase-js';
 import type { Profile } from '@/types/database';
@@ -19,8 +19,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const initialized = useRef(false);
   
-  const supabase = createClient();
+  // Create supabase client once
+  const supabase = useMemo(() => createClient(), []);
 
   const fetchProfile = async (userId: string) => {
     try {
@@ -31,7 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .single();
       
       if (error) {
-        console.log('Profile not found or not created yet:', error.message);
+        console.log('Profile fetch:', error.message);
         return null;
       }
       return data;
@@ -42,25 +44,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    // Get initial session
+    // Prevent double initialization in strict mode
+    if (initialized.current) return;
+    initialized.current = true;
+
+    let mounted = true;
+
     const getInitialSession = async () => {
       try {
-        const { data: { user }, error } = await supabase.auth.getUser();
+        // Use getSession instead of getUser for faster initial load
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (!mounted) return;
         
         if (error) {
-          console.log('No active session:', error.message);
+          console.log('Session check:', error.message);
         }
         
-        setUser(user);
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
         
-        if (user) {
-          const profile = await fetchProfile(user.id);
-          setProfile(profile);
+        if (currentUser) {
+          const userProfile = await fetchProfile(currentUser.id);
+          if (mounted) setProfile(userProfile);
         }
       } catch (err) {
-        console.error('Error getting session:', err);
+        if (mounted) console.error('Auth init error:', err);
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     };
 
@@ -69,45 +80,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
-        setUser(session?.user ?? null);
+        if (!mounted) return;
         
-        if (session?.user) {
-          const profile = await fetchProfile(session.user.id);
-          setProfile(profile);
+        console.log('Auth event:', event);
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
+        
+        if (currentUser) {
+          const userProfile = await fetchProfile(currentUser.id);
+          if (mounted) setProfile(userProfile);
         } else {
           setProfile(null);
         }
+        
+        // Ensure loading is false after auth change
+        setLoading(false);
       }
     );
 
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [supabase]);
 
   const signInWithGitHub = async () => {
     try {
-      // Get current path to redirect back after login
       const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/';
       const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(currentPath)}`;
       
-      console.log('Starting GitHub OAuth flow...');
-      console.log('Redirect URL:', redirectTo);
+      console.log('Starting GitHub OAuth...');
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
-        options: {
-          redirectTo,
-        },
+        options: { redirectTo },
       });
       
-      console.log('OAuth response:', { data, error });
-      
       if (error) {
-        console.error('GitHub sign in error:', error.message);
+        console.error('OAuth error:', error.message);
         alert(`Login failed: ${error.message}`);
       } else if (data?.url) {
-        console.log('Redirecting to:', data.url);
-        // Manually redirect if automatic redirect doesn't work
         window.location.href = data.url;
       }
     } catch (err) {
@@ -122,12 +134,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
       setProfile(null);
     } catch (err) {
-      console.error('Sign out failed:', err);
+      console.error('Sign out error:', err);
     }
   };
 
+  const value = useMemo(() => ({
+    user,
+    profile,
+    loading,
+    signInWithGitHub,
+    signOut,
+  }), [user, profile, loading]);
+
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signInWithGitHub, signOut }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
@@ -140,4 +160,3 @@ export function useAuth() {
   }
   return context;
 }
-

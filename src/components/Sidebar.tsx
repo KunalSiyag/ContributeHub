@@ -22,17 +22,18 @@ const generalNav: NavItem[] = [
 ];
 
 const issueManagementNav: NavItem[] = [
-  { label: 'Saved Issues', href: '/dashboard/issues?status=saved', icon: '⭐', requiresAuth: true },
-  { label: 'Ongoing', href: '/dashboard/issues?status=ongoing', icon: '🔧', requiresAuth: true },
-  { label: 'PR Submitted', href: '/dashboard/issues?status=pr_submitted', icon: '🚀', requiresAuth: true },
+  { label: 'Saved Issues', href: '/issues?status=saved', icon: '⭐', requiresAuth: true },
+  { label: 'Ongoing', href: '/issues?status=ongoing', icon: '🔧', requiresAuth: true },
+  { label: 'PR Submitted', href: '/issues?status=pr_submitted', icon: '🚀', requiresAuth: true },
 ];
 
 const dashboardNav: NavItem[] = [
   { label: 'Overview', href: '/dashboard', icon: '📊', requiresAuth: true },
-  { label: 'Pull Requests', href: '/dashboard/prs', icon: '🔀', requiresAuth: true },
-  { label: 'All Issues', href: '/dashboard/issues', icon: '📋', requiresAuth: true },
-  { label: 'Organizations', href: '/dashboard/orgs', icon: '🏢', requiresAuth: true },
+  { label: 'Pull Requests', href: '/issues?status=pr_submitted', icon: '🔀', requiresAuth: true },
+  { label: 'All Issues', href: '/issues', icon: '📋', requiresAuth: true },
+  { label: 'Organizations', href: '/events', icon: '🏢', requiresAuth: true },
 ];
+
 
 export default function Sidebar() {
   const pathname = usePathname();
