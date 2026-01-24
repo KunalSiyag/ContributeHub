@@ -19,7 +19,7 @@ export default function EventCard({ event, variant = 'default' }: EventCardProps
 
   return (
     <article className={`${styles.card} ${variant === 'compact' ? styles.compact : ''}`}>
-      {/* Status Badge */}
+      {/* Status Badge - Now Layout Relative (No Overlap) */}
       <div className={`${styles.status} ${statusColors[event.status || 'upcoming']}`}>
         {event.status === 'active' ? '🔥 Active Now' : event.status === 'upcoming' ? '📅 Upcoming' : '✅ Ended'}
       </div>

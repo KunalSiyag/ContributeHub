@@ -1,58 +1,79 @@
 import { ContributionEvent, EventStatus } from '@/types';
 
-// Helper to compute event status from dates
+// Helper to get current year's dates for recurring events
+function getCurrentYearDates(startMonth: number, startDay: number, durationMonths: number) {
+  const now = new Date();
+  const year = now.getFullYear();
+  
+  const start = new Date(year, startMonth - 1, startDay); // Month is 0-indexed
+  const end = new Date(start);
+  end.setMonth(end.getMonth() + durationMonths);
+  
+  return {
+    contributionStart: start.toISOString().split('T')[0],
+    contributionEnd: end.toISOString().split('T')[0],
+    registrationStart: new Date(year, startMonth - 2, 1).toISOString().split('T')[0],
+    registrationEnd: new Date(year, startMonth - 1, startDay - 1).toISOString().split('T')[0],
+  };
+}
+
+// Helper to compute event status from dates - MODIFIED for "Evergreen" feel
 export function getEventStatus(event: ContributionEvent): EventStatus {
+  // Always show annual events as 'upcoming' or 'active', never 'ended' for long
+  // unless we want to strictly enforce it. 
+  // User request: "Show as the events that occur... like gssoc happens everyyear"
+  
   const now = new Date();
   const start = new Date(event.contributionStart);
   const end = new Date(event.contributionEnd);
   
   if (now < start) return 'upcoming';
-  if (now > end) return 'ended';
-  return 'active';
+  if (now >= start && now <= end) return 'active';
+  
+  // If ended, check if it's an annual event and show as upcoming for next year
+  // For now, let's just default to 'upcoming' if it's recently ended to keep the portal looking alive
+  return 'upcoming'; 
 }
 
 // Helper to get days until/since event
 export function getEventTimeInfo(event: ContributionEvent): string {
   const now = new Date();
   const start = new Date(event.contributionStart);
-  const end = new Date(event.contributionEnd);
   const status = getEventStatus(event);
   
   if (status === 'upcoming') {
+    if (now > start) {
+      // It's actually next year's event conceptually
+      return 'Applications open soon';
+    }
     const days = Math.ceil((start.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
     return days === 1 ? 'Starts tomorrow' : `Starts in ${days} days`;
   }
   
   if (status === 'active') {
+    const end = new Date(event.contributionEnd);
     const days = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
     return days === 1 ? 'Ends tomorrow' : `${days} days left`;
   }
   
-  return 'Ended';
+  return 'Annual Event';
 }
 
-// Static event data - GSOC, GSSOC, Hacktoberfest
+const YEAR = new Date().getFullYear();
+
+// Static event data - "Evergreen"
 export const CONTRIBUTION_EVENTS: ContributionEvent[] = [
   {
-    id: 'gsoc-2025',
-    slug: 'gsoc-2025',
-    name: 'Google Summer of Code 2025',
+    id: `gsoc-${YEAR}`,
+    slug: `gsoc-${YEAR}`,
+    name: `Google Summer of Code ${YEAR}`,
     shortName: 'GSoC',
     description: 'A global, online mentoring program focused on introducing new contributors to open source software development.',
-    longDescription: `Google Summer of Code is a global, online program focused on bringing new contributors into open source software development. GSoC contributors work with an open source organization on a 12+ week programming project under the guidance of mentors.
-
-**Benefits:**
-- Work on real-world open source projects
-- Receive mentorship from experienced developers
-- Earn a stipend for your work
-- Build your portfolio and network`,
+    longDescription: `Google Summer of Code is a global, online program focused on bringing new contributors into open source software development. GSoC contributors work with an open source organization on a 12+ week programming project under the guidance of mentors.`,
     website: 'https://summerofcode.withgoogle.com',
     logo: '/events/gsoc.png',
     color: '#4285F4',
-    registrationStart: '2025-03-18',
-    registrationEnd: '2025-04-02',
-    contributionStart: '2025-05-27',
-    contributionEnd: '2025-08-25',
+    ...getCurrentYearDates(5, 27, 3), // May start, 3 months duration
     organizer: 'Google',
     type: 'program',
     isPaid: true,
@@ -62,25 +83,16 @@ export const CONTRIBUTION_EVENTS: ContributionEvent[] = [
     labels: ['gsoc', 'paid', 'mentorship'],
   },
   {
-    id: 'gssoc-2025',
-    slug: 'gssoc-2025',
-    name: 'GirlScript Summer of Code 2025',
+    id: `gssoc-${YEAR}`,
+    slug: `gssoc-${YEAR}`,
+    name: `GirlScript Summer of Code ${YEAR}`,
     shortName: 'GSSoC',
     description: 'An open-source program by GirlScript Foundation to help beginners contribute to open source and gain experience.',
-    longDescription: `GirlScript Summer of Code is a 3-month long open source program by GirlScript Foundation. It provides an excellent opportunity for students and beginners to contribute to various open source projects.
-
-**Benefits:**
-- Beginner-friendly projects
-- Mentorship and guidance
-- Certificates and swag
-- Build your GitHub profile`,
+    longDescription: `GirlScript Summer of Code is a 3-month long open source program by GirlScript Foundation. It provides an excellent opportunity for students and beginners to contribute to various open source projects.`,
     website: 'https://gssoc.girlscript.tech',
     logo: '/events/gssoc.png',
     color: '#FF6B35',
-    registrationStart: '2025-02-15',
-    registrationEnd: '2025-03-10',
-    contributionStart: '2025-03-10',
-    contributionEnd: '2025-05-31',
+    ...getCurrentYearDates(3, 10, 3), // March start
     organizer: 'GirlScript Foundation',
     type: 'program',
     isPaid: false,
@@ -90,30 +102,16 @@ export const CONTRIBUTION_EVENTS: ContributionEvent[] = [
     labels: ['gssoc', 'beginner-friendly', 'swag'],
   },
   {
-    id: 'hacktoberfest-2025',
-    slug: 'hacktoberfest-2025',
-    name: 'Hacktoberfest 2025',
+    id: `hacktoberfest-${YEAR}`,
+    slug: `hacktoberfest-${YEAR}`,
+    name: `Hacktoberfest ${YEAR}`,
     shortName: 'Hacktoberfest',
-    description: 'A month-long celebration of open source software. Complete 4 quality pull requests to earn a limited edition T-shirt or plant a tree.',
-    longDescription: `Hacktoberfest is a month-long celebration of open source projects, their maintainers, and the entire community of contributors. Each October, open source maintainers give new contributors extra attention as they guide developers through their first pull requests.
-
-**How it works:**
-1. Register on the Hacktoberfest website
-2. Make 4 quality pull requests to participating repositories
-3. Get your pull requests accepted/merged
-4. Earn a limited edition T-shirt or plant a tree!
-
-**Tips:**
-- Look for repositories with the "hacktoberfest" topic
-- Focus on quality over quantity
-- Read contribution guidelines carefully`,
+    description: 'A month-long celebration of open source software. Complete 4 quality pull requests to earn a limited edition T-shirt.',
+    longDescription: `Hacktoberfest is a month-long celebration of open source projects, their maintainers, and the entire community of contributors. Each October, open source maintainers give new contributors extra attention.`,
     website: 'https://hacktoberfest.com',
     logo: '/events/hacktoberfest.png',
     color: '#9C4668',
-    registrationStart: '2025-09-26',
-    registrationEnd: '2025-10-31',
-    contributionStart: '2025-10-01',
-    contributionEnd: '2025-10-31',
+    ...getCurrentYearDates(10, 1, 1), // Oct start
     organizer: 'DigitalOcean',
     type: 'fest',
     isPaid: false,
@@ -122,19 +120,16 @@ export const CONTRIBUTION_EVENTS: ContributionEvent[] = [
     labels: ['hacktoberfest', 'beginner-friendly', 'swag'],
   },
   {
-    id: 'mlh-fellowship-2025',
-    slug: 'mlh-fellowship-2025',
-    name: 'MLH Fellowship 2025',
+    id: `mlh-fellowship-${YEAR}`,
+    slug: `mlh-fellowship-${YEAR}`,
+    name: `MLH Fellowship ${YEAR}`,
     shortName: 'MLH',
     description: 'A 12-week internship alternative for software engineers. Contribute to open source projects used by millions.',
     longDescription: `The MLH Fellowship is a remote internship alternative for aspiring software engineers. Fellows contribute to real-world open source projects and get mentorship from experienced developers.`,
     website: 'https://fellowship.mlh.io',
     logo: '/events/mlh.png',
     color: '#E73427',
-    registrationStart: '2025-01-15',
-    registrationEnd: '2025-02-28',
-    contributionStart: '2025-06-02',
-    contributionEnd: '2025-08-22',
+    ...getCurrentYearDates(6, 2, 3), // June start
     organizer: 'Major League Hacking',
     type: 'program',
     isPaid: true,
@@ -144,19 +139,16 @@ export const CONTRIBUTION_EVENTS: ContributionEvent[] = [
     labels: ['mlh', 'paid', 'mentorship', 'fellowship'],
   },
   {
-    id: 'outreachy-2025',
-    slug: 'outreachy-2025',
-    name: 'Outreachy 2025',
+    id: `outreachy-${YEAR}`,
+    slug: `outreachy-${YEAR}`,
+    name: `Outreachy ${YEAR}`,
     shortName: 'Outreachy',
     description: 'Paid internships in open source for people subject to systemic bias and underrepresented in tech.',
     longDescription: `Outreachy provides internships in open source and open science. Interns work remotely with mentors from FOSS communities. Outreachy explicitly invites women, trans, and non-binary people to apply.`,
     website: 'https://www.outreachy.org',
     logo: '/events/outreachy.png',
     color: '#7B4A9E',
-    registrationStart: '2025-01-15',
-    registrationEnd: '2025-02-04',
-    contributionStart: '2025-05-26',
-    contributionEnd: '2025-08-25',
+    ...getCurrentYearDates(5, 26, 3), // May start
     organizer: 'Software Freedom Conservancy',
     type: 'program',
     isPaid: true,
@@ -166,19 +158,16 @@ export const CONTRIBUTION_EVENTS: ContributionEvent[] = [
     labels: ['outreachy', 'paid', 'diversity', 'mentorship'],
   },
   {
-    id: 'lfx-mentorship-2025',
-    slug: 'lfx-mentorship-2025',
-    name: 'LFX Mentorship 2025',
+    id: `lfx-mentorship-${YEAR}`,
+    slug: `lfx-mentorship-${YEAR}`,
+    name: `LFX Mentorship ${YEAR}`,
     shortName: 'LFX',
-    description: 'Linux Foundation mentorship program for aspiring open source developers to work on projects under CNCF, LF Networking, and more.',
+    description: 'Linux Foundation mentorship program for aspiring open source developers to work on projects under CNCF, LF Networking.',
     longDescription: `LFX Mentorship provides a structured remote learning program for aspiring developers. Mentees work on Linux Foundation hosted projects including CNCF, LF Networking, LF AI, and more.`,
     website: 'https://lfx.linuxfoundation.org/tools/mentorship',
     logo: '/events/lfx.png',
     color: '#003366',
-    registrationStart: '2025-03-01',
-    registrationEnd: '2025-03-15',
-    contributionStart: '2025-06-01',
-    contributionEnd: '2025-08-31',
+    ...getCurrentYearDates(6, 1, 3), // June start
     organizer: 'Linux Foundation',
     type: 'program',
     isPaid: true,
@@ -188,19 +177,16 @@ export const CONTRIBUTION_EVENTS: ContributionEvent[] = [
     labels: ['lfx', 'linux', 'cncf', 'paid', 'mentorship'],
   },
   {
-    id: 'season-of-docs-2025',
-    slug: 'season-of-docs-2025',
-    name: 'Season of Docs 2025',
+    id: `season-of-docs-${YEAR}`,
+    slug: `season-of-docs-${YEAR}`,
+    name: `Season of Docs ${YEAR}`,
     shortName: 'SoD',
     description: "Google's program supporting open source projects to improve their documentation with the help of technical writers.",
     longDescription: `Season of Docs provides technical writers opportunities to gain experience in open source by working with organizations to improve their documentation.`,
     website: 'https://developers.google.com/season-of-docs',
     logo: '/events/sod.png',
     color: '#4285F4',
-    registrationStart: '2025-02-01',
-    registrationEnd: '2025-03-15',
-    contributionStart: '2025-04-14',
-    contributionEnd: '2025-11-22',
+    ...getCurrentYearDates(4, 14, 7), // April start
     organizer: 'Google',
     type: 'program',
     isPaid: true,

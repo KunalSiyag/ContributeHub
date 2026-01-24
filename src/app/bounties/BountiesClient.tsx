@@ -15,12 +15,32 @@ const SOURCES: { value: BountySource; label: string }[] = [
 ];
 
 export default function BountiesClient({ initialBounties }: BountiesClientProps) {
-  const [activeSource, setActiveSource] = useState<BountySource>('all');
-  const [bounties, setBounties] = useState<BountyIssue[]>(initialBounties);
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('all');
+  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
+  const [activeSource, setActiveSource] = useState<BountySource | 'all'>('all');
 
-  const filteredBounties = activeSource === 'all' 
-    ? bounties 
-    : bounties.filter(b => b.source === activeSource);
+  const bounties = initialBounties;
+
+  // Extract unique languages
+  const languages = ['all', ...Array.from(new Set(bounties.map(b => 
+    b.labels.find(l => ['javascript', 'typescript', 'python', 'go', 'java', 'rust'].includes(l.toLowerCase())) || 'other'
+  )))];
+
+  const filteredBounties = bounties
+    .filter(b => activeSource === 'all' || b.source === activeSource)
+    .filter(b => {
+      if (selectedLanguage === 'all') return true;
+      const bLangs = b.labels.map(l => l.toLowerCase());
+      if (selectedLanguage === 'other') {
+        return !bLangs.some(l => ['javascript', 'typescript', 'python', 'go', 'java', 'rust'].includes(l));
+      }
+      return bLangs.includes(selectedLanguage.toLowerCase());
+    })
+    .sort((a, b) => {
+      const amountA = parseFloat(a.bountyAmount.replace(/[^0-9.]/g, ''));
+      const amountB = parseFloat(b.bountyAmount.replace(/[^0-9.]/g, ''));
+      return sortOrder === 'desc' ? amountB - amountA : amountA - amountB;
+    });
 
   return (
     <div className={styles.page}>
@@ -29,29 +49,53 @@ export default function BountiesClient({ initialBounties }: BountiesClientProps)
         <p>Find open source issues with rewards and get paid for your contributions.</p>
       </header>
 
-      {/* Source Tabs */}
-      <div className={styles.tabs}>
-        {SOURCES.map(source => (
-          <button
-            key={source.value}
-            className={`${styles.tab} ${activeSource === source.value ? styles.active : ''}`}
-            onClick={() => setActiveSource(source.value)}
+      {/* Controls Container */}
+      <div className={styles.controls}>
+        {/* Source Tabs */}
+        <div className={styles.tabs}>
+          {SOURCES.map(source => (
+            <button
+              key={source.value}
+              className={`${styles.tab} ${activeSource === source.value ? styles.active : ''}`}
+              onClick={() => setActiveSource(source.value)}
+            >
+              {source.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Filters */}
+        <div className={styles.filters}>
+          <select 
+            value={selectedLanguage} 
+            onChange={(e) => setSelectedLanguage(e.target.value)}
+            className={styles.select}
           >
-            {source.label}
-            <span className={styles.count}>
-              {source.value === 'all' 
-                ? bounties.length 
-                : bounties.filter(b => b.source === source.value).length}
-            </span>
-          </button>
-        ))}
+            <option value="all">All Languages</option>
+            <option value="typescript">TypeScript</option>
+            <option value="javascript">JavaScript</option>
+            <option value="python">Python</option>
+            <option value="go">Go</option>
+            <option value="java">Java</option>
+            <option value="rust">Rust</option>
+          </select>
+
+          <select 
+            value={sortOrder} 
+            onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
+            className={styles.select}
+          >
+            <option value="desc">Highest Reward</option>
+            <option value="asc">Lowest Reward</option>
+          </select>
+        </div>
       </div>
 
       {/* Bounties Grid */}
       <div className={styles.grid}>
         {filteredBounties.length === 0 ? (
           <div className={styles.empty}>
-            No bounties found for this source.
+            No bounties found matching your filters.
           </div>
         ) : (
           filteredBounties.map(bounty => (

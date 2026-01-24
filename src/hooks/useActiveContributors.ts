@@ -18,7 +18,7 @@ export function useActiveContributors(limit: number = 10) {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .rpc('get_active_contributors', { limit_count: limit });
+        .rpc('get_active_contributors', { limit_count: limit } as any);
 
       if (error) {
         console.error('Error fetching active contributors:', error);

@@ -240,3 +240,46 @@ export function calculateMatchScore(
 
   return Math.min(score, maxScore);
 }
+
+// Fetch global GitHub stats (Real-time)
+export async function getGlobalStats() {
+  try {
+    const [issuesRes, prsRes, usersRes] = await Promise.all([
+      // Issues
+      fetch(`${GITHUB_API_BASE}/search/issues?q=is:issue+is:open&per_page=1`, {
+        headers: getHeaders(),
+        next: { revalidate: 3600 } // Cache for 1 hour
+      }),
+      // PRs
+      fetch(`${GITHUB_API_BASE}/search/issues?q=is:pr+is:open&per_page=1`, {
+        headers: getHeaders(),
+        next: { revalidate: 3600 }
+      }),
+       // Users - explicit type:user search
+      fetch(`${GITHUB_API_BASE}/search/users?q=type:user&per_page=1`, {
+        headers: getHeaders(),
+        next: { revalidate: 3600 }
+      })
+    ]);
+
+    const issuesData = await issuesRes.json();
+    const prsData = await prsRes.json();
+    const usersData = await usersRes.json();
+
+    return {
+      totalIssues: issuesData.total_count || 0,
+      totalPRs: prsData.total_count || 0,
+      totalUsers: usersData.total_count || 0,
+      totalBounties: 500000 // Still estimated/hardcoded as there's no single API for this
+    };
+  } catch (error) {
+    console.error('Error fetching global stats:', error);
+    // Fallback to average known numbers if API fails
+    return {
+      totalIssues: 20000000,
+      totalPRs: 5000000,
+      totalUsers: 100000000,
+      totalBounties: 500000
+    };
+  }
+}

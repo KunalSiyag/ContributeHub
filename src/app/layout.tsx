@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { AuthProvider } from "@/contexts/AuthContext";
 import AppLayout from "@/components/AppLayout";
+import SmoothScroll from "@/components/SmoothScroll";
 import "./globals.css";
 
 const inter = Inter({
@@ -37,9 +38,11 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${jetbrainsMono.variable}`}>
         <AuthProvider>
-          <AppLayout>
-            {children}
-          </AppLayout>
+          <SmoothScroll>
+            <AppLayout>
+              {children}
+            </AppLayout>
+          </SmoothScroll>
         </AuthProvider>
       </body>
     </html>

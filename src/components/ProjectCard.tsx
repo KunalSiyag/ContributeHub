@@ -6,36 +6,38 @@ import styles from './ProjectCard.module.css';
 interface ProjectCardProps {
   repo: Repository;
   matchScore?: number;
+  participationTags?: string[];
 }
 
-export default function ProjectCard({ repo, matchScore }: ProjectCardProps) {
+export default function ProjectCard({ repo, matchScore, participationTags = [] }: ProjectCardProps) {
   return (
     <article className={styles.card}>
-      <div className={styles.header}>
-        <div className={styles.titleRow}>
-          <a
-            href={repo.html_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.title}
-          >
-            <span className={styles.owner}>{repo.owner.login}/</span>
-            <span className={styles.name}>{repo.name}</span>
-          </a>
-          {matchScore !== undefined && matchScore > 0 && (
-            <span className={styles.matchBadge}>
-              {matchScore}% match
-            </span>
-          )}
+      <img
+        src={repo.owner.avatar_url}
+        alt={`${repo.owner.login} avatar`}
+        className={styles.avatar}
+        width={64}
+        height={64}
+      />
+      <div className={styles.content}>
+        <div className={styles.header}>
+          <div className={styles.titleRow}>
+            <a
+              href={repo.html_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.title}
+            >
+              <span className={styles.owner}>{repo.owner.login}/</span>
+              <span className={styles.name}>{repo.name}</span>
+            </a>
+            {matchScore !== undefined && matchScore > 0 && (
+              <span className={styles.matchBadge}>
+                {matchScore}% match
+              </span>
+            )}
+          </div>
         </div>
-        <img
-          src={repo.owner.avatar_url}
-          alt={`${repo.owner.login} avatar`}
-          className={styles.avatar}
-          width={32}
-          height={32}
-        />
-      </div>
 
       <p className={styles.description}>
         {repo.description || 'No description available'}
@@ -55,6 +57,15 @@ export default function ProjectCard({ repo, matchScore }: ProjectCardProps) {
       )}
 
       <div className={styles.footer}>
+        {participationTags.length > 0 && (
+          <div className={styles.participationTags}>
+             {participationTags.map(tag => (
+               <span key={tag} className={styles.participationTag}>
+                 {tag}
+               </span>
+             ))}
+          </div>
+        )}
         <div className={styles.stats}>
           {repo.language && (
             <span className={styles.stat}>
@@ -78,6 +89,7 @@ export default function ProjectCard({ repo, matchScore }: ProjectCardProps) {
         <span className={styles.updated}>
           Updated {timeAgo(repo.updated_at)}
         </span>
+      </div>
       </div>
     </article>
   );

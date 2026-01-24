@@ -1,14 +1,23 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Repository, Issue, RepositoryFilters, IssueFilters } from '@/types';
+import { Repository, Issue, RepositoryFilters } from '@/types';
 import { getStoredPreferences, defaultPreferences } from '@/lib/utils';
 import { calculateMatchScore } from '@/lib/github';
+import { GSSOC_ORGANIZATIONS } from '@/lib/events';
 import ProjectCard from '@/components/ProjectCard';
 import IssueCard from '@/components/IssueCard';
 import FilterPanel from '@/components/FilterPanel';
+import IssueFilterPanel, { IssuePreset, IssueSortOption } from '@/components/IssueFilterPanel';
 import SearchBar from '@/components/SearchBar';
 import styles from './page.module.css';
+
+// Helper to get participation tags
+const getParticipationTags = (repoFullName: string) => {
+  const org = GSSOC_ORGANIZATIONS.find(o => o.slug === repoFullName);
+  if (!org || !org.participationYears) return [];
+  return org.participationYears.sort((a, b) => b - a).map(year => `GSSoC ${year}`);
+};
 
 type TabType = 'projects' | 'issues';
 
@@ -19,11 +28,18 @@ export default function DiscoverPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Filters
+  // Project Filters
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState('');
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [minStars, setMinStars] = useState(0);
+  
+  // Issue Filters
+  const [issuePreset, setIssuePreset] = useState<IssuePreset>('good-first');
+  const [issueLanguage, setIssueLanguage] = useState('');
+  const [issueLabels, setIssueLabels] = useState<string[]>([]);
+  const [issueSortBy, setIssueSortBy] = useState<IssueSortOption>('created');
+  const [issueLabelSearch, setIssueLabelSearch] = useState('');
   
   // User preferences for match scoring
   const [userSkills, setUserSkills] = useState<string[]>([]);
@@ -70,16 +86,28 @@ export default function DiscoverPage() {
         const data = await response.json();
         setRepos(data.items || []);
       } else {
-        const filters: IssueFilters = {
-          labels: ['good first issue'],
-          language: selectedLanguage || undefined,
-          perPage: 20,
-        };
+        // Build issue API params
+        const params = new URLSearchParams();
+        
+        if (issuePreset !== 'all') {
+          params.set('preset', issuePreset);
+        }
+        
+        if (issueLanguage) {
+          params.set('language', issueLanguage);
+        }
+        
+        if (issueLabels.length > 0) {
+          params.set('labels', issueLabels.join(','));
+        }
+        
+        params.set('sort', issueSortBy);
+        
+        if (searchQuery) {
+          params.set('query', searchQuery);
+        }
 
-        const response = await fetch('/api/issues?' + new URLSearchParams({
-          labels: filters.labels?.join(',') || 'good first issue',
-          language: filters.language || '',
-        }));
+        const response = await fetch('/api/issues?' + params.toString());
 
         if (!response.ok) throw new Error('Failed to fetch issues');
         
@@ -91,7 +119,7 @@ export default function DiscoverPage() {
     } finally {
       setLoading(false);
     }
-  }, [activeTab, searchQuery, selectedLanguage, selectedTopics, minStars]);
+  }, [activeTab, searchQuery, selectedLanguage, selectedTopics, minStars, issuePreset, issueLanguage, issueLabels, issueSortBy]);
 
   useEffect(() => {
     fetchData();
@@ -136,15 +164,30 @@ export default function DiscoverPage() {
 
         {/* Main Content */}
         <div className={styles.content}>
-          {/* Sidebar Filters */}
-          <FilterPanel
-            selectedLanguage={selectedLanguage}
-            onLanguageChange={setSelectedLanguage}
-            selectedTopics={selectedTopics}
-            onTopicsChange={setSelectedTopics}
-            minStars={minStars}
-            onMinStarsChange={setMinStars}
-          />
+          {/* Sidebar Filters - Different for Projects vs Issues */}
+          {activeTab === 'projects' ? (
+            <FilterPanel
+              selectedLanguage={selectedLanguage}
+              onLanguageChange={setSelectedLanguage}
+              selectedTopics={selectedTopics}
+              onTopicsChange={setSelectedTopics}
+              minStars={minStars}
+              onMinStarsChange={setMinStars}
+            />
+          ) : (
+            <IssueFilterPanel
+              selectedPreset={issuePreset}
+              onPresetChange={setIssuePreset}
+              selectedLanguage={issueLanguage}
+              onLanguageChange={setIssueLanguage}
+              selectedLabels={issueLabels}
+              onLabelsChange={setIssueLabels}
+              sortBy={issueSortBy}
+              onSortChange={setIssueSortBy}
+              labelSearch={issueLabelSearch}
+              onLabelSearchChange={setIssueLabelSearch}
+            />
+          )}
 
           {/* Results */}
           <div className={styles.results}>
@@ -181,6 +224,7 @@ export default function DiscoverPage() {
                         key={repo.id}
                         repo={repo}
                         matchScore={userSkills.length > 0 ? matchScore : undefined}
+                        participationTags={getParticipationTags(repo.full_name)}
                       />
                     ))}
                   </div>

@@ -1,4 +1,4 @@
-import { getTrendingRepositories, getBeginnerIssues, searchIssues } from '@/lib/github';
+import { getTrendingRepositories, getBeginnerIssues, searchIssues, getGlobalStats } from '@/lib/github';
 import { getActiveOrUpcomingEvents } from '@/lib/events';
 import { Repository, Issue } from '@/types';
 import HomeClient from '@/components/HomeClient';
@@ -59,10 +59,10 @@ async function getBountyIssues(): Promise<Issue[]> {
 
 export default async function Home() {
   // Fetch all data in parallel
-  const [reposResponse, issuesResponse, stats, contributors, bountyIssues] = await Promise.all([
+    const [reposResponse, issuesResponse, stats, contributors, bountyIssues] = await Promise.all([
     getTrendingRepositories().catch(() => ({ items: [] })),
     getBeginnerIssues().catch(() => ({ items: [] })),
-    getStats(),
+    getGlobalStats(), // Use real GitHub stats
     getActiveContributors(),
     getBountyIssues(),
   ]);

@@ -49,8 +49,8 @@ export function useIssueManagement() {
     setError(null);
 
     try {
-      const { data, error: insertError } = await supabase
-        .from('tracked_issues')
+      const { data, error: insertError } = await (supabase
+        .from('tracked_issues') as any)
         .upsert({
           user_id: user.id,
           issue_url: issue.url,
@@ -72,7 +72,7 @@ export function useIssueManagement() {
       if (insertError) throw insertError;
       
       // Log activity
-      await supabase.from('user_activity').insert({
+      await (supabase.from('user_activity') as any).insert({
         user_id: user.id,
         action_type: 'issue_save',
         metadata: { issue_url: issue.url },
@@ -98,8 +98,8 @@ export function useIssueManagement() {
     setError(null);
 
     try {
-      const { error: updateError } = await supabase
-        .from('tracked_issues')
+      const { error: updateError } = await (supabase
+        .from('tracked_issues') as any)
         .update({ status })
         .eq('id', issueId)
         .eq('user_id', user.id);
@@ -107,7 +107,7 @@ export function useIssueManagement() {
       if (updateError) throw updateError;
 
       if (status === 'pr_submitted') {
-        await supabase.from('user_activity').insert({
+        await (supabase.from('user_activity') as any).insert({
           user_id: user.id,
           action_type: 'pr_submit',
           metadata: { issue_id: issueId },
@@ -129,8 +129,8 @@ export function useIssueManagement() {
 
     setLoading(true);
     try {
-      let query = supabase
-        .from('tracked_issues')
+      let query = (supabase
+        .from('tracked_issues') as any)
         .select('*')
         .eq('user_id', user.id)
         .order('updated_at', { ascending: false });
@@ -156,8 +156,8 @@ export function useIssueManagement() {
 
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('tracked_issues')
+      const { error } = await (supabase
+        .from('tracked_issues') as any)
         .delete()
         .eq('id', issueId)
         .eq('user_id', user.id);

@@ -19,23 +19,55 @@ function getHeaders(): HeadersInit {
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   
-  const labels = searchParams.get('labels')?.split(',').filter(Boolean) || ['good first issue'];
+  // Parse all filter parameters
+  const labels = searchParams.get('labels')?.split(',').filter(Boolean) || [];
   const language = searchParams.get('language') || '';
+  const query = searchParams.get('query') || '';
+  const sort = searchParams.get('sort') || 'created'; // created, updated, comments
+  const order = searchParams.get('order') || 'desc';
+  const minStars = parseInt(searchParams.get('minStars') || '0', 10);
+  const preset = searchParams.get('preset') || ''; // recent, good-first, help-wanted, top-repos
+  const perPage = parseInt(searchParams.get('per_page') || '20', 10);
   
   // Build the search query
   const queryParts: string[] = ['is:issue', 'state:open'];
 
-  // Add labels
-  labels.forEach((label) => {
-    queryParts.push(`label:"${label}"`);
-  });
+  // Handle presets
+  if (preset === 'good-first') {
+    queryParts.push('label:"good first issue"');
+  } else if (preset === 'help-wanted') {
+    queryParts.push('label:"help wanted"');
+  } else if (preset === 'recent') {
+    // Recent issues - no special label, just sorted by created
+  } else if (preset === 'top-repos') {
+    // Issues from repos with > 1000 stars
+    queryParts.push('stars:>1000');
+  }
 
+  // Add custom labels (if not using preset or in addition to preset)
+  if (labels.length > 0 && !preset) {
+    labels.forEach((label) => {
+      queryParts.push(`label:"${label}"`);
+    });
+  }
+
+  // Add language filter
   if (language) {
     queryParts.push(`language:${language}`);
   }
 
+  // Add minimum stars filter
+  if (minStars > 0) {
+    queryParts.push(`stars:>=${minStars}`);
+  }
+
+  // Add text search query
+  if (query) {
+    queryParts.push(query);
+  }
+
   const searchQuery = encodeURIComponent(queryParts.join(' '));
-  const url = `${GITHUB_API_BASE}/search/issues?q=${searchQuery}&sort=created&order=desc&per_page=20`;
+  const url = `${GITHUB_API_BASE}/search/issues?q=${searchQuery}&sort=${sort}&order=${order}&per_page=${perPage}`;
 
   try {
     const response = await fetch(url, {
@@ -44,8 +76,10 @@ export async function GET(request: NextRequest) {
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('GitHub API error:', response.status, errorText);
       return NextResponse.json(
-        { error: `GitHub API error: ${response.status}` },
+        { error: `GitHub API error: ${response.status}`, details: errorText },
         { status: response.status }
       );
     }

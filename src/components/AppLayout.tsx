@@ -28,6 +28,13 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <div className={styles.appLayout}>
+      {/* Global Photogenic Background */}
+      <div className="photogenic-wrapper">
+        <div className="blur-blob blob-1"></div>
+        <div className="blur-blob blob-2"></div>
+        <div className="blur-blob blob-3"></div>
+      </div>
+      
       <Sidebar />
       <div className={styles.mainContent}>
         {children}

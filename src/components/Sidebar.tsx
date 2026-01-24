@@ -21,19 +21,9 @@ const generalNav: NavItem[] = [
   { label: 'Trending', href: '/discover?sort=stars', icon: '📈' },
 ];
 
-const issueManagementNav: NavItem[] = [
-  { label: 'Saved Issues', href: '/issues?status=saved', icon: '⭐', requiresAuth: true },
-  { label: 'Ongoing', href: '/issues?status=ongoing', icon: '🔧', requiresAuth: true },
-  { label: 'PR Submitted', href: '/issues?status=pr_submitted', icon: '🚀', requiresAuth: true },
-];
-
 const dashboardNav: NavItem[] = [
-  { label: 'Overview', href: '/dashboard', icon: '📊', requiresAuth: true },
-  { label: 'Pull Requests', href: '/issues?status=pr_submitted', icon: '🔀', requiresAuth: true },
-  { label: 'All Issues', href: '/issues', icon: '📋', requiresAuth: true },
-  { label: 'Organizations', href: '/events', icon: '🏢', requiresAuth: true },
+  { label: 'All Issues', href: '/dashboard', icon: '📋', requiresAuth: true },
 ];
-
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -108,14 +98,6 @@ export default function Sidebar() {
           {!collapsed && <span className={styles.sectionLabel}>GENERAL</span>}
           {generalNav.map(renderNavItem)}
         </div>
-
-        {/* Issue Management (Auth Required) */}
-        {mounted && user && (
-          <div className={styles.navSection}>
-            {!collapsed && <span className={styles.sectionLabel}>MY ISSUES</span>}
-            {issueManagementNav.map(renderNavItem)}
-          </div>
-        )}
 
         {/* Dashboard (Auth Required) */}
         {mounted && user && (

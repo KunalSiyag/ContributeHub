@@ -58,7 +58,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!mounted) return;
         
         if (error) {
-          console.log('Session check:', error.message);
+          console.log('Session check error:', error.message);
+        } else {
+          console.log('Session check success:', session ? `User: ${session.user.email}` : 'No session found');
         }
         
         const currentUser = session?.user ?? null;
@@ -79,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      async (event: string, session: { user: User } | null) => {
         if (!mounted) return;
         
         console.log('Auth event:', event);
@@ -110,6 +112,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(currentPath)}`;
       
       console.log('Starting GitHub OAuth...');
+      
+      // Sign out to clear any existing session
+      await supabase.auth.signOut();
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
