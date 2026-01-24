@@ -66,7 +66,7 @@ const useTypewriter = (words: string[], speed = 150, pause = 1500) => {
 
     const timeout = setTimeout(() => {
       setSubIndex((prev) => prev + (reverse ? -1 : 1));
-    }, Math.max(reverse ? 75 : speed, parseInt(Math.random() * 350)));
+    }, Math.max(reverse ? 75 : speed, Math.floor(Math.random() * 350)));
 
     return () => clearTimeout(timeout);
   }, [subIndex, index, reverse, words, speed, pause]);

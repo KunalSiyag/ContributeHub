@@ -23,9 +23,11 @@ export const metadata: Metadata = {
   keywords: ["open source", "github", "contribute", "developer", "projects", "issues", "good first issue"],
   authors: [{ name: "Orion" }],
   openGraph: {
-    title: "Orion - The Open Source Hub",
     description: "Find your next open source contribution opportunity based on your skills and interests.",
     type: "website",
+  },
+  icons: {
+    icon: "/favicon.svg",
   },
 };
 

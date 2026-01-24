@@ -58,11 +58,25 @@ export default function IssueActions({ issue, initialStatus, onStatusChange }: I
   }, [user, issue.url, isIssueTracked]);
 
   const handleSave = async () => {
-    const result = await saveIssue(issue);
-    if (result) {
-      setIssueId(result.id);
-      setStatus('saved');
-      onStatusChange?.('saved');
+    console.log('IssueActions: handleSave called', { issue, user: !!user });
+    if (!user) {
+      console.log('IssueActions: No user logged in');
+      return;
+    }
+    
+    try {
+      const result = await saveIssue(issue);
+      console.log('IssueActions: saveIssue result', result);
+      
+      if (result) {
+        setIssueId(result.id);
+        setStatus('saved');
+        onStatusChange?.('saved');
+      } else {
+        console.error('IssueActions: saveIssue returned null');
+      }
+    } catch (err) {
+      console.error('IssueActions: Error in handleSave', err);
     }
   };
 

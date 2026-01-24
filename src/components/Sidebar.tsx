@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { getStoredTheme, setStoredTheme, applyTheme } from '@/lib/utils';
 import styles from './Sidebar.module.css';
 
 interface NavItem {
@@ -18,7 +19,7 @@ const generalNav: NavItem[] = [
   { label: 'Discover', href: '/discover', icon: '🔍' },
   { label: 'Events', href: '/events', icon: '🎉' },
   { label: 'Bounties', href: '/bounties', icon: '💰' },
-  { label: 'Trending', href: '/discover?sort=stars', icon: '📈' },
+  { label: 'Resume Based', href: '/resume', icon: '📄' },
 ];
 
 const dashboardNav: NavItem[] = [
@@ -30,10 +31,23 @@ export default function Sidebar() {
   const { user, signInWithGitHub, signOut, loading } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
 
   useEffect(() => {
     setMounted(true);
+    // Initialize theme
+    const storedTheme = getStoredTheme();
+    if (storedTheme === 'light' || storedTheme === 'dark') {
+      setTheme(storedTheme);
+    }
   }, []);
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+    setStoredTheme(newTheme);
+    applyTheme(newTheme);
+  };
 
   const handleLogin = async () => {
     console.log('Sidebar: Login clicked');
@@ -106,12 +120,33 @@ export default function Sidebar() {
             {dashboardNav.map(renderNavItem)}
           </div>
         )}
-
-
       </nav>
 
-      {/* User Section */}
+      {/* Theme Toggle & User Section */}
       <div className={styles.userSection}>
+        {/* Theme Toggle */}
+        <button 
+          onClick={toggleTheme}
+          className={styles.themeToggle}
+          style={{
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            padding: '12px',
+            background: 'transparent',
+            border: 'none',
+            borderTop: '1px solid var(--color-border)',
+            color: 'var(--color-text-secondary)',
+            cursor: 'pointer',
+            justifyContent: collapsed ? 'center' : 'flex-start',
+            marginBottom: '10px'
+          }}
+        >
+           <span style={{ fontSize: '1.2rem' }}>{theme === 'dark' ? '☀️' : '🌙'}</span>
+           {!collapsed && <span>{mounted ? (theme === 'dark' ? 'Light Mode' : 'Dark Mode') : 'Dark Mode'}</span>}
+        </button>
+
         {!mounted ? (
           <div className={styles.loading}>...</div>
         ) : loading ? (
@@ -140,4 +175,3 @@ export default function Sidebar() {
     </aside>
   );
 }
-
