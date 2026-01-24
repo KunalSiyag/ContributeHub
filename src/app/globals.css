@@ -270,8 +270,8 @@ a:hover {
 }
 
 .page-wrapper {
-  min-height: calc(100vh - var(--header-height) - var(--banner-height));
-  padding-top: calc(var(--header-height) + var(--banner-height));
+  min-height: calc(100vh - var(--header-height));
+  padding-top: var(--header-height);
 }
 
 /* ===== Buttons & Inputs ===== */
@@ -614,3 +614,33 @@ a:hover {
   100% { transform: translate(50px, 30px) scale(1.1) rotate(10deg); }
 }
 
+/* Cosmic Text Effect for Orion */
+.orionText {
+  background: linear-gradient(
+    90deg,
+    #a855f7 0%,
+    #ffffff 25%,
+    #3b82f6 50%,
+    #ffffff 75%,
+    #a855f7 100%
+  );
+  background-size: 200% auto;
+  color: #fff; /* Fallback */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  
+  /* Create the "Border" look with stroke and shadow */
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.1); 
+  filter: drop-shadow(0 0 15px rgba(168, 85, 247, 0.6));
+  
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  animation: shine-border 3s linear infinite;
+}
+
+@keyframes shine-border {
+  to {
+    background-position: 200% center;
+  }
+}

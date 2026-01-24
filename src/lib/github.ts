@@ -283,3 +283,21 @@ export async function getGlobalStats() {
     };
   }
 }
+
+// Get trending developers (users with high followers)
+export async function getTrendingDevelopers(limit: number = 6): Promise<any[]> {
+  try {
+    const url = `${GITHUB_API_BASE}/search/users?q=type:user+followers:>500&sort=followers&order=desc&per_page=${limit}`;
+    const response = await fetch(url, {
+      headers: getHeaders(),
+      next: { revalidate: 3600 },
+    });
+
+    if (!response.ok) return [];
+
+    const data = await response.json();
+    return data.items || [];
+  } catch {
+    return [];
+  }
+}

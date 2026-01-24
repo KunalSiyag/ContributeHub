@@ -49,20 +49,14 @@ export default function Header() {
   return (
     <>
       {/* Announcement Banner */}
-      <div className={styles.announcementBanner}>
-        <span className={styles.announcementTag}>NEW</span>
-        <span>GSoC 2025 organizations announced!</span>
-        <Link href="/events/gsoc-2025" className={styles.announcementLink}>
-          View details →
-        </Link>
-      </div>
+
 
       <header className={styles.header}>
       <div className={styles.container}>
         <div className={styles.left}>
           <Link href="/" className={styles.logo}>
             <span className={styles.logoIcon}>⬡</span>
-            <span className={styles.logoText}>ContributeHub</span>
+            <span className={`${styles.logoText} orionText`}>Orion</span>
           </Link>
           <nav className={styles.desktopNav}>
             <Link href="/" className={styles.navLink}>Home</Link>

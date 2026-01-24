@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import Footer from './Footer';
 import styles from './AppLayout.module.css';
 
 interface AppLayoutProps {
@@ -17,12 +18,13 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
   if (isHomepage) {
     return (
-      <>
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         <Header />
-        <main className="page-wrapper">
+        <main className="page-wrapper" style={{ flex: 1 }}>
           {children}
         </main>
-      </>
+        <Footer />
+      </div>
     );
   }
 
@@ -36,8 +38,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
       </div>
       
       <Sidebar />
-      <div className={styles.mainContent}>
-        {children}
+      <div className={styles.mainContent} style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <div style={{ flex: 1 }}>
+          {children}
+        </div>
+        <Footer />
       </div>
     </div>
   );

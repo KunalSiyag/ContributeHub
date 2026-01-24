@@ -10,10 +10,11 @@ const supabase = createClient(
 export async function GET() {
   try {
     // Get counts from Supabase
-    const [profilesResult, issuesResult, prsResult] = await Promise.all([
+    const [profilesResult, issuesResult, prsResult, waitlistResult] = await Promise.all([
       supabase.from('profiles').select('id', { count: 'exact', head: true }),
       supabase.from('tracked_issues').select('id', { count: 'exact', head: true }),
       supabase.from('tracked_prs').select('id', { count: 'exact', head: true }),
+      supabase.from('waitlist').select('id', { count: 'exact', head: true }),
     ]);
 
     // Calculate bounty stats
@@ -36,23 +37,13 @@ export async function GET() {
     }
 
     const realStats = {
-      totalUsers: profilesResult.count || 0,
+      totalUsers: (profilesResult.count || 0) + (waitlistResult.count || 0),
       totalIssues: issuesResult.count || 0,
       totalPRs: prsResult.count || 0,
       totalBounties: totalBounties,
     };
 
-    // If database is empty, return "impressive" fallback numbers for the landing page
-    // This solves the user's request where stats were "not showing" (showing 0)
-    if (realStats.totalUsers === 0 && realStats.totalIssues === 0) {
-      return NextResponse.json({
-        totalUsers: 1240,       // "1.2K+"
-        totalIssues: 8500,      // "8.5K+"
-        totalPRs: 3200,         // "3.2K+"
-        totalBounties: 5000,    // "$5K"
-      });
-    }
-
+    // Return real stats directly, no fallbacks
     return NextResponse.json(realStats);
   } catch (error) {
     console.error('Error fetching stats:', error);

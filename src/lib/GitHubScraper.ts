@@ -1,34 +1,68 @@
+import * as cheerio from 'cheerio';
 
-export interface GlobalStats {
-  totalUsers: number;
-  totalIssues: number;
-  totalPRs: number;
-  totalBounties: number;
-}
-
-export interface Organization {
+export interface TrendingDeveloper {
+  rank: number;
+  username: string;
   name: string;
-  year: number;
-  logo: string;
+  url: string;
+  avatar: string;
+  popularRepo?: {
+    name: string;
+    description: string;
+    url: string;
+  };
 }
 
-export const getGlobalStats = async (): Promise<GlobalStats> => {
-  // In a real app, this would be a Supabase RPC call to count rows
-  // For now, returning "impressive" marketing numbers
-  return {
-    totalUsers: 1240,
-    totalIssues: 8500,
-    totalPRs: 3200,
-    totalBounties: 45000 // In dollars or count? Assuming count/value mix for marketing
-  };
-};
+export const scrapeTrendingDevelopers = async (): Promise<TrendingDeveloper[]> => {
+  try {
+    const response = await fetch('https://github.com/trending/developers', {
+      next: { revalidate: 3600 } // Cache for 1 hour
+    });
+    
+    if (!response.ok) {
+      console.error('Failed to fetch GitHub trending page');
+      return [];
+    }
 
-export const getParticipatingOrgs = async (): Promise<Organization[]> => {
-  return [
-    { name: 'TensorFlow', year: 2024, logo: 'https://avatars.githubusercontent.com/u/15658638?s=200&v=4' },
-    { name: 'React', year: 2024, logo: 'https://avatars.githubusercontent.com/u/6412038?s=200&v=4' },
-    { name: 'Flutter', year: 2024, logo: 'https://avatars.githubusercontent.com/u/14101776?s=200&v=4' },
-    { name: 'Kubernetes', year: 2023, logo: 'https://avatars.githubusercontent.com/u/13629408?s=200&v=4' },
-    { name: 'Mozilla', year: 2024, logo: 'https://avatars.githubusercontent.com/u/131524?s=200&v=4' },
-  ];
+    const html = await response.text();
+    const $ = cheerio.load(html);
+    const developers: TrendingDeveloper[] = [];
+
+    $('.Box-row').each((index, element) => {
+      const $element = $(element);
+      
+      // Extract Username and Name
+      const $title = $element.find('h1.h3 a');
+      const href = $title.attr('href') || '';
+      const username = href.replace('/', '').trim();
+      const name = $title.text().trim();
+      
+      // Extract Avatar
+      const avatar = $element.find('img.avatar').attr('src') || '';
+      
+      // Extract Popular Repo
+      const $repo = $element.find('h1.h4 a');
+      const repoName = $repo.text().trim();
+      const repoUrl = $repo.attr('href') || '';
+      const repoDesc = $element.find('.f6.color-fg-muted.mt-1').text().trim();
+
+      developers.push({
+        rank: index + 1,
+        username,
+        name,
+        url: `https://github.com${href}`,
+        avatar,
+        popularRepo: {
+          name: repoName,
+          description: repoDesc,
+          url: `https://github.com${repoUrl}`
+        }
+      });
+    });
+
+    return developers;
+  } catch (error) {
+    console.error('Error scraping trending developers:', error);
+    return [];
+  }
 };

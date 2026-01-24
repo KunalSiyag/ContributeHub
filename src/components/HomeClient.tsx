@@ -8,6 +8,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Repository, Issue, ContributionEvent } from '@/types';
 import IssueCard from './IssueCard';
 import EventCard from './EventCard';
+import WaitlistForm from './WaitlistForm';
 import styles from '../app/page.module.css';
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
@@ -21,10 +22,16 @@ interface PlatformStats {
 }
 
 interface Contributor {
-  id: string;
-  username: string;
-  avatar_url: string;
-  contribution_count: number;
+  id?: number | string;
+  username?: string;
+  name?: string;
+  login?: string;
+  avatar_url?: string;
+  avatar?: string;
+  contribution_count?: number;
+  html_url?: string;
+  url?: string;
+  rank?: number;
 }
 
 interface HomeClientProps {
@@ -180,33 +187,12 @@ export default function HomeClient({
             Accelerate Your Career.
           </h1>
           <p className={styles.heroSubtitle}>
-            GitHub has over 20 million open issues waiting for you. We just make them easy to find.
-            Stop scrolling endlessly—ContributeHub curates the perfect "Good First Issues," bounties, and hackathons tailored to your skills.
+            Stop looking for "Good First Issues" manually. We index thousands of repositories to find the perfect contribution for your skill level.
+            Join GSoC, GSSoC, Hacktoberfest and earn bounties from top open source projects.
           </p>
-          <div className={styles.heroCta}>
-            <Link href="/discover" className={`${styles.primaryBtn} ${styles.wompy}`}>
-              Start Contributing Now
-            </Link>
-            <Link href="/bounties" className={`${styles.secondaryBtn} ${styles.wompy}`}>
-              Browse 50+ Bounties
-            </Link>
-          </div>
-          
-          {/* Real Stats - Embedded in Hero */}
-          <div className={`${styles.heroStats} ${styles.glassy}`}>
-            <div className={styles.stat}>
-              <span className={styles.statNumber}>{formatNumber(stats.totalUsers)}</span>
-              <span className={styles.statLabel}>Global Developers</span>
-            </div>
-            <div className={styles.stat}>
-              <span className={styles.statNumber}>{formatNumber(stats.totalIssues)}</span>
-              <span className={styles.statLabel}>Open Issues</span>
-            </div>
-            <div className={styles.stat}>
-              <span className={styles.statNumber}>{stats.totalBounties >= 500000 ? '$500K+' : formatNumber(stats.totalBounties)}</span>
-              <span className={styles.statLabel}>Available Bounties</span>
-            </div>
-          </div>
+           <div className={styles.heroCta} style={{ flexDirection: 'column', alignItems: 'center', gap: '20px', width: '100%' }}>
+             <WaitlistForm waitlistCount={stats.totalUsers} />
+           </div>
         </div>
       </section>
 
@@ -461,10 +447,65 @@ export default function HomeClient({
           </div>
         </section>
 
+        {/* Trending Developers - Horizontal Slider */}
+        <section className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>🔥 Trending Developers</h2>
+            <a href="https://github.com/trending/developers" target="_blank" rel="noopener noreferrer" className={styles.viewAllLink}>
+              View on GitHub →
+            </a>
+          </div>
+          
+          <div 
+            className={styles.trendingGrid} 
+            style={{ 
+              display: 'flex', 
+              overflowX: 'auto', 
+              gap: '20px', 
+              paddingBottom: '20px',
+              scrollSnapType: 'x mandatory',
+              gridTemplateColumns: 'none' // Override grid
+            }}
+          >
+            {activeContributors.map((dev) => {
+              const avatarSrc = dev.avatar || dev.avatar_url || `https://ui-avatars.com/api/?name=${dev.username || dev.login || 'User'}&background=random`;
+              return (
+              <a 
+                key={dev.username || dev.id}
+                href={dev.url || dev.html_url || '#'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`${styles.trendingCard} ${styles.glassy}`}
+                style={{ 
+                  minWidth: '220px',
+                  flex: '0 0 auto', 
+                  alignItems: 'center', 
+                  textAlign: 'center', 
+                  flexDirection: 'column', 
+                  gap: '15px',
+                  scrollSnapAlign: 'start'
+                }}
+              >
+                  <img 
+                    src={avatarSrc} 
+                    alt={dev.username || 'Developer'} 
+                    style={{ width: '80px', height: '80px', borderRadius: '50%', border: '2px solid var(--color-primary)' }} 
+                  />
+                  <div>
+                    <h3 className={styles.trendingName} style={{ fontSize: '1.2rem', marginBottom: '5px' }}>{dev.name || dev.username || dev.login}</h3>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', display: 'block' }}>
+                      {dev.rank ? `Trending #${dev.rank}` : `${dev.contribution_count || 0} Contributions`}
+                    </span>
+                  </div>
+              </a>
+            );})}
+          </div>
+        </section>
+
         {/* CTA Section */}
         <section className={`${styles.ctaSection} ${styles.glassy}`}>
           <h2>Ready to Launch Your Open Source Career?</h2>
-          <p>Join 1,240+ developers shipping code and earning bounties.</p>
+          <p>Join {formatNumber(stats.totalUsers)}+ developers shipping code and earning bounties.</p>
           <Link href="/discover" className={`${styles.primaryBtn} ${styles.wompy}`}>
             Get Started For Free
           </Link>

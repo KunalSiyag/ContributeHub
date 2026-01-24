@@ -130,10 +130,7 @@ export async function fetchAllBounties(
     bounties.push(...ghBounties);
   }
 
-  if (source === 'all' || source === 'gitcoin') {
-    const gcBounties = await fetchGitcoinBounties(limit);
-    bounties.push(...gcBounties);
-  }
+  // Gitcoin bounties removed as per request (fabricated data)
 
   // Sort by bounty value descending
   bounties.sort((a, b) => b.bountyValue - a.bountyValue);

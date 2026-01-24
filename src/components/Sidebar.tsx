@@ -76,10 +76,10 @@ export default function Sidebar() {
   return (
     <aside className={`${styles.sidebar} ${collapsed ? styles.collapsed : ''}`}>
       {/* Logo */}
-      <div className={styles.logoSection}>
+        <div className={styles.logoSection}>
         <Link href="/" className={styles.logo}>
           <span className={styles.logoIcon}>⬡</span>
-          {!collapsed && <span className={styles.logoText}>ContributeHub</span>}
+          {!collapsed && <span className={`${styles.logoText} orionText`}>Orion</span>}
         </Link>
         <button 
           type="button"
@@ -107,23 +107,7 @@ export default function Sidebar() {
           </div>
         )}
 
-        {/* Settings */}
-        <div className={styles.navSection}>
-          {!collapsed && <span className={styles.sectionLabel}>CONTACT US</span>}
-          <Link href="/settings" className={styles.navItem}>
-            <span className={styles.navIcon}>⚙️</span>
-            {!collapsed && <span className={styles.navLabel}>Settings</span>}
-          </Link>
-          <a 
-            href="https://github.com/ContributeHub" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className={styles.navItem}
-          >
-            <span className={styles.navIcon}>❤️</span>
-            {!collapsed && <span className={styles.navLabel}>Submit &lt;3</span>}
-          </a>
-        </div>
+
       </nav>
 
       {/* User Section */}

@@ -18,12 +18,12 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ContributeHub - Connect with Open Source Projects",
+  title: "Orion - The Open Source Hub",
   description: "A platform designed to connect developers with open-source projects on GitHub needing help. Find your next contribution opportunity based on your skills and interests.",
   keywords: ["open source", "github", "contribute", "developer", "projects", "issues", "good first issue"],
-  authors: [{ name: "ContributeHub" }],
+  authors: [{ name: "Orion" }],
   openGraph: {
-    title: "ContributeHub - Connect with Open Source Projects",
+    title: "Orion - The Open Source Hub",
     description: "Find your next open source contribution opportunity based on your skills and interests.",
     type: "website",
   },

@@ -11,7 +11,6 @@ interface BountiesClientProps {
 const SOURCES: { value: BountySource; label: string }[] = [
   { value: 'all', label: 'All' },
   { value: 'github', label: 'GitHub' },
-  { value: 'gitcoin', label: 'Gitcoin' },
 ];
 
 export default function BountiesClient({ initialBounties }: BountiesClientProps) {

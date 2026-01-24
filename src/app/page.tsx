@@ -1,4 +1,5 @@
 import { getTrendingRepositories, getBeginnerIssues, searchIssues, getGlobalStats } from '@/lib/github';
+import { scrapeTrendingDevelopers } from '@/lib/GitHubScraper';
 import { getActiveOrUpcomingEvents } from '@/lib/events';
 import { Repository, Issue } from '@/types';
 import HomeClient from '@/components/HomeClient';
@@ -21,7 +22,7 @@ interface Contributor {
 async function getStats(): Promise<PlatformStats> {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const res = await fetch(`${baseUrl}/api/stats`, { next: { revalidate: 300 } });
+    const res = await fetch(`${baseUrl}/api/stats`, { next: { revalidate: 0 } });
     if (!res.ok) throw new Error('Failed to fetch stats');
     return res.json();
   } catch {
@@ -59,11 +60,11 @@ async function getBountyIssues(): Promise<Issue[]> {
 
 export default async function Home() {
   // Fetch all data in parallel
-    const [reposResponse, issuesResponse, stats, contributors, bountyIssues] = await Promise.all([
+    const [reposResponse, issuesResponse, stats, trendingDevelopers, bountyIssues] = await Promise.all([
     getTrendingRepositories().catch(() => ({ items: [] })),
     getBeginnerIssues().catch(() => ({ items: [] })),
-    getGlobalStats(), // Use real GitHub stats
-    getActiveContributors(),
+    getStats(), // Local stats for Waitlist
+    scrapeTrendingDevelopers().catch(() => []), // Real Scraped Trending Developers
     getBountyIssues(),
   ]);
 
@@ -77,7 +78,7 @@ export default async function Home() {
       beginnerIssues={beginnerIssues}
       events={events}
       stats={stats}
-      activeContributors={contributors}
+      activeContributors={trendingDevelopers}
       bountyIssues={bountyIssues}
     />
   );
