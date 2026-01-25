@@ -22,14 +22,24 @@ export default function DashboardClient() {
   
   const [filterStatus, setFilterStatus] = useState<'all' | 'saved' | 'ongoing' | 'pr_submitted' | 'completed' | 'resume_based'>('all');
   const [savedIssues, setSavedIssues] = useState<TrackedIssue[]>([]);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
-      if (user && !authLoading) {
+      if (authLoading) return;
+      
+      if (user) {
         // Fetch Saved Issues
-        const allIssues = await getTrackedIssues();
-        console.log('DashboardClient: fetched issues', allIssues);
-        setSavedIssues(allIssues || []);
+        try {
+          const allIssues = await getTrackedIssues();
+          console.log('DashboardClient: fetched issues', allIssues);
+          setSavedIssues(allIssues || []);
+        } finally {
+          setInitialLoading(false);
+        }
+      } else {
+        setInitialLoading(false);
       }
     };
     fetchData();
@@ -51,7 +61,7 @@ export default function DashboardClient() {
 
   const isComingSoonTab = ['ongoing', 'pr_submitted', 'completed', 'resume_based'].includes(filterStatus);
 
-  if (authLoading || dbLoading) {
+  if (authLoading || (initialLoading && user)) {
     return <div className={styles.loadingContainer}>Loading dashboard...</div>;
   }
 
@@ -153,7 +163,7 @@ export default function DashboardClient() {
                   )}
                 </div>
             ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
                   {savedIssues
                     .filter(i => filterStatus === 'all' || i.status === filterStatus)
                     .map(issue => (
@@ -165,7 +175,8 @@ export default function DashboardClient() {
                         position: 'relative',
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: '15px'
+                        gap: '15px',
+                        zIndex: openMenuId === issue.id ? 100 : 1
                       }}>
                         {/* ... (Keep existing card content) ... */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -204,6 +215,8 @@ export default function DashboardClient() {
                                     }}
                                     initialStatus={issue.status as any}
                                     onStatusChange={(newStatus) => handleStatusUpdate(issue.id, newStatus)}
+                                    isOpen={openMenuId === issue.id}
+                                    onToggleMenu={(isOpen) => setOpenMenuId(isOpen ? issue.id : null)}
                                 />
                             </div>
                         </div>

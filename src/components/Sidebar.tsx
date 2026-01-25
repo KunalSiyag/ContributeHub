@@ -33,9 +33,10 @@ export default function Sidebar() {
   const [mounted, setMounted] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
 
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   useEffect(() => {
     setMounted(true);
-    // Initialize theme
     const storedTheme = getStoredTheme();
     if (storedTheme === 'light' || storedTheme === 'dark') {
       setTheme(storedTheme);
@@ -50,7 +51,6 @@ export default function Sidebar() {
   };
 
   const handleLogin = async () => {
-    console.log('Sidebar: Login clicked');
     try {
       await signInWithGitHub();
     } catch (err) {
@@ -59,7 +59,6 @@ export default function Sidebar() {
   };
 
   const handleSignOut = async () => {
-    console.log('Sidebar: Sign out clicked');
     try {
       await signOut();
     } catch (err) {
@@ -80,6 +79,7 @@ export default function Sidebar() {
         key={item.href}
         href={item.href}
         className={`${styles.navItem} ${isActive(item.href) ? styles.active : ''}`}
+        onClick={() => setMobileMenuOpen(false)}
       >
         <span className={styles.navIcon}>{item.icon}</span>
         {!collapsed && <span className={styles.navLabel}>{item.label}</span>}
@@ -88,90 +88,116 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className={`${styles.sidebar} ${collapsed ? styles.collapsed : ''}`}>
-      {/* Logo */}
-        <div className={styles.logoSection}>
-        <Link href="/" className={styles.logo}>
+    <>
+      {/* Mobile Top Bar */}
+      <div className={styles.mobileHeader}>
+        <div className={styles.mobileLogo}>
           <span className={styles.logoIcon}>⬡</span>
-          {!collapsed && <span className={`${styles.logoText} orionText`}>Orion</span>}
-        </Link>
+          <span className={`${styles.logoText} orionText`}>Orion</span>
+        </div>
         <button 
-          type="button"
-          className={styles.collapseBtn}
-          onClick={() => setCollapsed(!collapsed)}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          className={styles.mobileMenuToggle}
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="Toggle menu"
         >
-          {collapsed ? '→' : '←'}
+          {mobileMenuOpen ? '✕' : '☰'}
         </button>
       </div>
 
-      {/* Navigation Sections */}
-      <nav className={styles.nav}>
-        {/* General */}
-        <div className={styles.navSection}>
-          {!collapsed && <span className={styles.sectionLabel}>GENERAL</span>}
-          {generalNav.map(renderNavItem)}
+      {/* Mobile Overlay */}
+      {mobileMenuOpen && (
+        <div 
+          className={styles.overlay} 
+          onClick={() => setMobileMenuOpen(false)} 
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside className={`${styles.sidebar} ${collapsed ? styles.collapsed : ''} ${mobileMenuOpen ? styles.mobileOpen : ''}`}>
+        {/* Logo (Desktop) */}
+        <div className={styles.logoSection}>
+          <Link href="/" className={styles.logo}>
+            <span className={styles.logoIcon}>⬡</span>
+            {!collapsed && <span className={`${styles.logoText} orionText`}>Orion</span>}
+          </Link>
+          <button 
+            type="button"
+            className={styles.collapseBtn}
+            onClick={() => setCollapsed(!collapsed)}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {collapsed ? '→' : '←'}
+          </button>
         </div>
 
-        {/* Dashboard (Auth Required) */}
-        {mounted && user && (
+        {/* Navigation Sections */}
+        <nav className={styles.nav}>
+          {/* General */}
           <div className={styles.navSection}>
-            {!collapsed && <span className={styles.sectionLabel}>MY DASHBOARD</span>}
-            {dashboardNav.map(renderNavItem)}
+            {!collapsed && <span className={styles.sectionLabel}>GENERAL</span>}
+            {generalNav.map(renderNavItem)}
           </div>
-        )}
-      </nav>
 
-      {/* Theme Toggle & User Section */}
-      <div className={styles.userSection}>
-        {/* Theme Toggle */}
-        <button 
-          onClick={toggleTheme}
-          className={styles.themeToggle}
-          style={{
-            width: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            padding: '12px',
-            background: 'transparent',
-            border: 'none',
-            borderTop: '1px solid var(--color-border)',
-            color: 'var(--color-text-secondary)',
-            cursor: 'pointer',
-            justifyContent: collapsed ? 'center' : 'flex-start',
-            marginBottom: '10px'
-          }}
-        >
-           <span style={{ fontSize: '1.2rem' }}>{theme === 'dark' ? '☀️' : '🌙'}</span>
-           {!collapsed && <span>{mounted ? (theme === 'dark' ? 'Light Mode' : 'Dark Mode') : 'Dark Mode'}</span>}
-        </button>
+          {/* Dashboard (Auth Required) */}
+          {mounted && user && (
+            <div className={styles.navSection}>
+              {!collapsed && <span className={styles.sectionLabel}>MY DASHBOARD</span>}
+              {dashboardNav.map(renderNavItem)}
+            </div>
+          )}
+        </nav>
 
-        {!mounted ? (
-          <div className={styles.loading}>...</div>
-        ) : loading ? (
-          <div className={styles.loading}>...</div>
-        ) : user ? (
-          <div className={styles.userInfo}>
-            <img 
-              src={user.user_metadata?.avatar_url || '/default-avatar.png'} 
-              alt="Avatar" 
-              className={styles.userAvatar}
-            />
-            {!collapsed && (
-              <div className={styles.userDetails}>
-                <span className={styles.userName}>{user.user_metadata?.user_name}</span>
-                <button type="button" onClick={handleSignOut} className={styles.signOutBtn}>Sign Out</button>
-              </div>
-            )}
-          </div>
-        ) : (
-          <button type="button" onClick={handleLogin} className={styles.loginBtn}>
-            <span className={styles.navIcon}>🔐</span>
-            {!collapsed && <span>Login with GitHub</span>}
+        {/* Theme Toggle & User Section */}
+        <div className={styles.userSection}>
+          {/* Theme Toggle */}
+          <button 
+            onClick={toggleTheme}
+            className={styles.themeToggle}
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              padding: '12px',
+              background: 'transparent',
+              border: 'none',
+              borderTop: '1px solid var(--color-border)',
+              color: 'var(--color-text-secondary)',
+              cursor: 'pointer',
+              justifyContent: collapsed ? 'center' : 'flex-start',
+              marginBottom: '10px'
+            }}
+          >
+             <span style={{ fontSize: '1.2rem' }}>{theme === 'dark' ? '☀️' : '🌙'}</span>
+             {!collapsed && <span>{mounted ? (theme === 'dark' ? 'Light Mode' : 'Dark Mode') : 'Dark Mode'}</span>}
           </button>
-        )}
-      </div>
-    </aside>
+
+          {!mounted ? (
+            <div className={styles.loading}>...</div>
+          ) : loading ? (
+            <div className={styles.loading}>...</div>
+          ) : user ? (
+            <div className={styles.userInfo}>
+              <img 
+                src={user.user_metadata?.avatar_url || '/default-avatar.png'} 
+                alt="Avatar" 
+                className={styles.userAvatar}
+              />
+              {!collapsed && (
+                <div className={styles.userDetails}>
+                  <span className={styles.userName}>{user.user_metadata?.user_name}</span>
+                  <button type="button" onClick={handleSignOut} className={styles.signOutBtn}>Sign Out</button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <button type="button" onClick={handleLogin} className={styles.loginBtn}>
+              <span className={styles.navIcon}>🔐</span>
+              {!collapsed && <span>Login with GitHub</span>}
+            </button>
+          )}
+        </div>
+      </aside>
+    </>
   );
 }

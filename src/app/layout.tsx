@@ -39,6 +39,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${jetbrainsMono.variable}`}>
+        <div className="photogenic-wrapper">
+          <div className="blur-blob blob-1"></div>
+          <div className="blur-blob blob-2"></div>
+          <div className="blur-blob blob-3"></div>
+        </div>
         <AuthProvider>
           <SmoothScroll>
             <AppLayout>

@@ -644,3 +644,32 @@ a:hover {
     background-position: 200% center;
   }
 }
+/* Purple Backlight & Border Highlight Effect */
+.purple-hue-card {
+  position: relative;
+  /* overflow: hidden; Removed to allow border glow to spill if needed, but backlight needs overflow usually. 
+     If overflow is visible, the radial gradient might spill. Let's keep overflow hidden or careful sizing. 
+     Actually, for a backlight *behind*, we might want overflow visible but z-index -1. */
+}
+
+.purple-hue-card::after { /* Backlight */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(800px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(168, 85, 247, 0.1), transparent 40%);
+  opacity: 0;
+  z-index: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.purple-hue-card:hover::after {
+  opacity: 1;
+}
+
+.purple-hue-card:hover {
+  border-color: var(--color-accent-purple);
+  box-shadow: 
+    0 0 20px rgba(168, 85, 247, 0.2),
+    inset 0 0 10px rgba(168, 85, 247, 0.05);
+}

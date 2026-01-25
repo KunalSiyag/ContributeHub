@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import styles from '../app/page.module.css'; // Reuse main styles for simplicity or inline
+import styles from './WaitlistForm.module.css';
+import pageStyles from '../app/page.module.css';
 
 interface WaitlistFormProps {
   waitlistCount?: number;
@@ -43,84 +44,38 @@ export default function WaitlistForm({ waitlistCount }: WaitlistFormProps) {
   };
 
   return (
-    <div style={{ marginTop: '20px', maxWidth: '480px', width: '100%', margin: '0 auto' }}>
+    <div className={styles.formContainer}>
       {status === 'success' ? (
-        <div className="fade-in" style={{ 
-          padding: '16px 24px', 
-          background: 'rgba(34, 197, 94, 0.1)', 
-          border: '1px solid rgba(34, 197, 94, 0.3)', 
-          borderRadius: '12px', 
-          color: '#4ade80', 
-          textAlign: 'center',
-          backdropFilter: 'blur(10px)',
-          boxShadow: '0 4px 20px rgba(34, 197, 94, 0.1)'
-        }}>
-          <span style={{ fontSize: '1.2rem', marginRight: '8px' }}>✨</span>
+        <div className={styles.successMessage}>
+          <span className={styles.icon}>✨</span>
           <span style={{ fontWeight: 500 }}>{message}</span>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '12px', flexDirection: 'column', alignItems: 'center' }}>
-          <div style={{ 
-            display: 'flex', 
-            gap: '8px', 
-            width: '100%', 
-            background: 'var(--color-bg-secondary)', // Adaptive background
-            padding: '6px', 
-            borderRadius: '14px', 
-            border: '1px solid var(--color-border)',
-            boxShadow: '0 4px 24px rgba(0, 0, 0, 0.1)',
-            backdropFilter: 'blur(10px)'
-          }}>
+        <form onSubmit={handleSubmit} className={styles.form}>
+          <div className={styles.inputGroup}>
             <input
               type="email"
               placeholder="Enter your email address..."
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={status === 'loading'}
-              style={{
-                flex: 1,
-                padding: '12px 16px',
-                borderRadius: '10px',
-                border: 'none',
-                background: 'transparent',
-                color: 'var(--color-text-primary)', // Fix for light mode
-                fontSize: '1rem',
-                outline: 'none',
-                minWidth: '0'
-              }}
+              className={styles.input}
               required
             />
             <button
               type="submit"
               disabled={status === 'loading'}
-              className={`${styles.primaryBtn} ${styles.wompy}`}
-              style={{ 
-                padding: '12px 24px', 
-                whiteSpace: 'nowrap', 
-                borderRadius: '10px',
-                fontSize: '0.95rem',
-                fontWeight: 600,
-                border: 'none',
-                minWidth: '130px',
-                cursor: status === 'loading' ? 'wait' : 'pointer'
-              }}
+              className={`${pageStyles.primaryBtn} ${pageStyles.wompy} ${styles.submitBtn}`}
             >
               {status === 'loading' ? 'Joining...' : 'Join Waitlist'}
             </button>
           </div>
           {status === 'error' && (
-            <span style={{ 
-              color: '#f87171', 
-              fontSize: '0.9rem', 
-              marginTop: '8px',
-              background: 'rgba(248, 113, 113, 0.1)',
-              padding: '6px 12px',
-              borderRadius: '20px'
-            }}>
+            <span className={styles.error}>
               {message}
             </span>
           )}
-          <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginTop: '8px' }}>
+          <p className={styles.count}>
             {displayedCount} people are in the queue.
           </p>
         </form>

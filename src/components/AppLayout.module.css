@@ -17,10 +17,10 @@
   margin-left: 64px;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .mainContent {
     margin-left: 0;
     padding: var(--space-md);
+    padding-top: calc(64px + var(--space-md)); /* Header height + spacing */
   }
 }

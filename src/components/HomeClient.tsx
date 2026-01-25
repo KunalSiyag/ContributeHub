@@ -115,11 +115,6 @@ export default function HomeClient({
       opacity: 0,
       duration: 0.5,
       stagger: 0.1,
-    }, '-=0.4')
-    .from(`.${styles.heroStats}`, {
-      y: 30,
-      opacity: 0,
-      duration: 0.8,
     }, '-=0.4');
 
     // Scroll Animations
@@ -171,12 +166,8 @@ export default function HomeClient({
 
   return (
     <div ref={container} className={styles.homePage}>
-      {/* Photogenic Blur Background */}
-      <div className={styles.photogenicWrapper}>
-        <div className={`${styles.blurBlob} ${styles.blob1}`}></div>
-        <div className={`${styles.blurBlob} ${styles.blob2}`}></div>
-        <div className={`${styles.blurBlob} ${styles.blob3}`}></div>
-      </div>
+      {/* Photogenic Blur Background - Handled Globally */}
+
 
       {/* Hero Section - Full Screen */}
       <section className={styles.hero}>

@@ -289,6 +289,8 @@
   cursor: pointer;
   color: var(--color-text-primary);
   transition: all var(--transition-fast);
+  z-index: 1003;
+  position: relative;
 }
 
 .mobileMenuButton:hover {
@@ -300,34 +302,69 @@
   line-height: 1;
 }
 
-/* Mobile styles */
-@media (max-width: 768px) {
-  .nav {
-    position: absolute;
-    top: var(--header-height);
-    left: 0;
-    right: 0;
-    flex-direction: column;
-    background: var(--color-bg-primary);
-    border-bottom: 1px solid var(--color-border);
-    padding: var(--space-md);
-    gap: var(--space-xs);
-    transform: translateY(-100%);
-    opacity: 0;
-    pointer-events: none;
-    transition: all var(--transition-base);
+/* Mobile/Tablet styles */
+@media (max-width: 1024px) {
+  .desktopNav {
+    display: none;
   }
-
-  .navOpen {
-    transform: translateY(0);
+  
+  /* Sidebar Navigation (Landing Page Mobile) */
+  .mobileNav {
+    position: fixed;
+    top: var(--header-height); /* Start after header */
+    left: auto;
+    right: 0; /* Slide from Right (Side of button) */
+    bottom: 0;
+    width: 280px;
+    height: calc(100vh - var(--header-height));
+    display: flex;
+    flex-direction: column;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-left: 1px solid var(--color-border); /* Border Left */
+    border-right: none;
+    padding: var(--space-xl) var(--space-md);
+    gap: var(--space-md);
+    transform: translateX(100%); /* Hidden Right */
     opacity: 1;
     pointer-events: auto;
+    transition: transform var(--transition-base);
+    z-index: 1002; /* Above overlay */
+    overflow-y: auto;
+    box-shadow: -10px 0 30px rgba(0,0,0,0.5); /* Shadow to left */
+  }
+
+  .mobileNav.open {
+    transform: translateX(0); /* Slide In */
+  }
+
+  /* Overlay Backdrop */
+  .mobileMenuOverlay {
+    position: fixed;
+    top: var(--header-height); /* Start after header */
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 1001; /* Above header content if needed, but below nav */
+    animation: fadeIn 0.2s ease;
+  }
+
+  /* Hide desktop login button (outside nav) */
+  .actions .loginButton {
+    display: none;
   }
 
   .navLink {
     width: 100%;
     text-align: center;
     padding: var(--space-md);
+  }
+
+  .mobileMenuButton {
+    display: flex;
   }
 
   .ctaButton {
@@ -338,7 +375,51 @@
     display: none;
   }
 
-  .mobileMenuButton {
+  .mobileActions {
     display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    margin-top: var(--space-sm);
+    padding-top: var(--space-sm);
+    border-top: 1px solid var(--color-border);
   }
+
+  .mobileThemeBtn {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    padding: var(--space-sm);
+    border-radius: var(--radius-md);
+    color: var(--color-text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+
+  .mobileUser {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .mobileUserInfo {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-xs) var(--space-md);
+    color: var(--color-text-secondary);
+  }
+
+  /* Override the display:none from desktop styles for the login button when inside mobile nav */
+  .mobileNav .loginButton {
+    display: flex;
+    width: 100%;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }

@@ -67,12 +67,52 @@ export default function Header() {
           </nav>
         </div>
 
-        <nav className={`${styles.mobileNav} ${mobileMenuOpen ? styles.open : ''}`}>
-           <Link href="/" className={styles.navLink}>Home</Link>
-           <Link href="/discover" className={styles.navLink}>Discover</Link>
-           <Link href="/events" className={styles.navLink}>Events</Link>
-           <Link href="/bounties" className={styles.navLink}>Bounties</Link>
-           {mounted && user && <Link href="/dashboard" className={styles.navLink}>Dashboard</Link>}
+         {mobileMenuOpen && (
+           <div 
+             className={styles.mobileMenuOverlay} 
+             onClick={() => setMobileMenuOpen(false)}
+           />
+         )}
+
+         <nav className={`${styles.mobileNav} ${mobileMenuOpen ? styles.open : ''}`}>
+           <Link href="/" className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>Home</Link>
+           <Link href="/discover" className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>Discover</Link>
+           <Link href="/events" className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>Events</Link>
+           <Link href="/bounties" className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>Bounties</Link>
+           {mounted && user && <Link href="/dashboard" className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>}
+           
+           <div className={styles.mobileActions}>
+             <button 
+               onClick={toggleTheme} 
+               className={styles.mobileThemeBtn}
+             >
+               {mounted ? (theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode') : '🌙 Dark Mode'}
+             </button>
+
+             {mounted && (user ? (
+                <div className={styles.mobileUser}>
+                  <div className={styles.mobileUserInfo}>
+                    <img 
+                      src={profile?.avatar_url || user.user_metadata?.avatar_url || '/default-avatar.png'} 
+                      alt="Avatar"
+                      className={styles.userAvatar}
+                    />
+                    <span>{profile?.username || 'Contributor'}</span>
+                  </div>
+                  <button onClick={() => { handleSignOut(); setMobileMenuOpen(false); }} className={styles.navLink} style={{ border: '1px solid var(--color-border)', textAlign: 'center' }}>
+                    Sign Out
+                  </button>
+                </div>
+             ) : (
+                <button 
+                  onClick={() => { handleLogin(); setMobileMenuOpen(false); }} 
+                  className={styles.loginButton} 
+                  style={{ display: 'flex', width: '100%' }}
+                >
+                  <span className={styles.loginButtonInner}>Sign in with GitHub</span>
+                </button>
+             ))}
+           </div>
         </nav>
 
         <div className={styles.actions}>

@@ -18,6 +18,8 @@ interface IssueActionsProps {
   };
   initialStatus?: IssueStatus | null;
   onStatusChange?: (status: IssueStatus | null) => void;
+  isOpen?: boolean;
+  onToggleMenu?: (isOpen: boolean) => void;
 }
 
 const STATUS_OPTIONS: { value: IssueStatus; label: string; icon: string }[] = [
@@ -27,12 +29,28 @@ const STATUS_OPTIONS: { value: IssueStatus; label: string; icon: string }[] = [
   { value: 'completed', label: 'Completed', icon: '✅' },
 ];
 
-export default function IssueActions({ issue, initialStatus, onStatusChange }: IssueActionsProps) {
+export default function IssueActions({ issue, initialStatus, onStatusChange, isOpen, onToggleMenu }: IssueActionsProps) {
   const { user } = useAuth();
   const { saveIssue, updateStatus, removeIssue, isIssueTracked, loading } = useIssueManagement();
   const [status, setStatus] = useState<IssueStatus | null>(initialStatus || null);
   const [issueId, setIssueId] = useState<string | null>(null);
-  const [showMenu, setShowMenu] = useState(false);
+  
+  const [localShowMenu, setLocalShowMenu] = useState(false);
+  const showMenu = isOpen !== undefined ? isOpen : localShowMenu;
+
+  const toggleMenu = (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    const newState = !showMenu;
+    if (onToggleMenu) onToggleMenu(newState);
+    else setLocalShowMenu(newState);
+  };
+
+  const closeMenu = () => {
+    if (onToggleMenu) onToggleMenu(false);
+    else setLocalShowMenu(false);
+  };
+
   const [checking, setChecking] = useState(false);
 
   // Check if issue is already tracked when component mounts
@@ -97,7 +115,7 @@ export default function IssueActions({ issue, initialStatus, onStatusChange }: I
         onStatusChange?.(newStatus);
       }
     }
-    setShowMenu(false);
+    closeMenu();
   };
 
   const handleRemove = async () => {
@@ -109,7 +127,7 @@ export default function IssueActions({ issue, initialStatus, onStatusChange }: I
         onStatusChange?.(null);
       }
     }
-    setShowMenu(false);
+    closeMenu();
   };
 
   if (!user) {
@@ -133,14 +151,33 @@ export default function IssueActions({ issue, initialStatus, onStatusChange }: I
           {loading ? '...' : '⭐ Save'}
         </button>
       ) : (
-        <div className={styles.statusDropdown}>
+        <div className={styles.statusDropdown} style={{ display: 'flex' }}>
           <button 
             className={`${styles.statusBtn} ${styles[status]}`}
-            onClick={() => setShowMenu(!showMenu)}
+            onClick={status === 'saved' ? handleRemove : toggleMenu}
+            style={{ 
+              borderTopRightRadius: 0, 
+              borderBottomRightRadius: 0, 
+              borderRight: '1px solid rgba(0,0,0,0.1)',
+              paddingRight: '8px' 
+            }}
+            title={status === 'saved' ? "Click to unsave" : "Change status"}
           >
             <span>{currentStatus?.icon}</span>
             <span>{currentStatus?.label}</span>
-            <span className={styles.chevron}>▼</span>
+          </button>
+          <button
+             className={`${styles.statusBtn} ${styles[status]}`}
+             onClick={toggleMenu}
+             style={{ 
+               borderTopLeftRadius: 0, 
+               borderBottomLeftRadius: 0, 
+               paddingLeft: '6px', 
+               paddingRight: '8px' 
+             }}
+             aria-label="Open status menu"
+          >
+             <span className={styles.chevron}>▼</span>
           </button>
           
           {showMenu && (
@@ -156,8 +193,12 @@ export default function IssueActions({ issue, initialStatus, onStatusChange }: I
                 </button>
               ))}
               <div className={styles.menuDivider} />
-              <button className={styles.removeBtn} onClick={handleRemove}>
-                🗑️ Remove
+              <button 
+                className={styles.removeBtn} 
+                onClick={handleRemove}
+                title="Stop tracking this issue"
+              >
+                🗑️ Unsave
               </button>
             </div>
           )}

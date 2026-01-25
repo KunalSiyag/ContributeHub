@@ -207,7 +207,93 @@
   color: var(--color-text-tertiary);
 }
 
-/* Collapsed state adjustments */
+/* Mobile Header (Hidden on Desktop) */
+.mobileHeader {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--color-border);
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-lg);
+  z-index: 1001; /* Higher than sidebar content but same as overlay stack */
+}
+
+/* Mobile Logo in Header */
+.mobileLogo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.mobileMenuToggle {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-size: 1.25rem;
+  cursor: pointer;
+}
+
+/* Overlay for Mobile Sidebar */
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 999; /* Below sidebar (100+), wait sidebar needs to range up */
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .mobileHeader {
+    display: flex;
+    z-index: 1003; /* Highest priority to keep toggle accessible */
+  }
+
+  .sidebar {
+    top: 64px; /* Start below the mobile header */
+    width: 280px;
+    transform: translateX(-100%);
+    z-index: 1002; /* Above overlay */
+    box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+    border-top: 1px solid var(--color-border); /* nice separator */
+  }
+
+  .sidebar.mobileOpen {
+    transform: translateX(0);
+  }
+
+  .sidebar.collapsed {
+    width: 280px; /* Disable collapsed width logic on mobile */
+  }
+
+  .logoSection {
+    display: none; /* Hide internal logo section on mobile, use mobile header */
+  }
+
+  .overlay {
+    display: block;
+    z-index: 1001; /* Below sidebar and header */
+  }
+}
+
+/* Collapsed state adjustments (Desktop only really) */
 .collapsed .navItem {
   justify-content: center;
   padding: var(--space-sm);

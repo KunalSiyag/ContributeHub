@@ -19,13 +19,24 @@ interface Contributor {
   contribution_count: number;
 }
 
+import { createClient } from '@/lib/supabase/server';
+
+// ...
+
 async function getStats(): Promise<PlatformStats> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const res = await fetch(`${baseUrl}/api/stats`, { next: { revalidate: 0 } });
-    if (!res.ok) throw new Error('Failed to fetch stats');
-    return res.json();
-  } catch {
+    const supabase = await createClient();
+    const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
+    
+    // Fallback/Mock for other stats if strictly needed by UI, but user cares about Waitlist count
+    return { 
+      totalUsers: count || 0, 
+      totalIssues: 0, 
+      totalPRs: 0, 
+      totalBounties: 0 
+    };
+  } catch (e) {
+    console.error('Stats fetch error:', e);
     return { totalUsers: 0, totalIssues: 0, totalPRs: 0, totalBounties: 0 };
   }
 }
