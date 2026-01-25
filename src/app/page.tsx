@@ -27,13 +27,14 @@ async function getStats(): Promise<PlatformStats> {
   try {
     const supabase = await createClient();
     const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
+    const { count: waitlistCount } = await supabase.from('waitlist').select('*', { count: 'exact', head: true });
     
     // Fallback/Mock for other stats if strictly needed by UI, but user cares about Waitlist count
     return { 
-      totalUsers: count || 0, 
+      totalUsers: (count || 0) + (waitlistCount || 0), 
       totalIssues: 0, 
       totalPRs: 0, 
-      totalBounties: 0 
+      totalBounties: 0,
     };
   } catch (e) {
     console.error('Stats fetch error:', e);
