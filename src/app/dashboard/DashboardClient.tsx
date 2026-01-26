@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIssueManagement, TrackedIssue } from '@/hooks/useIssueManagement';
 import { useGitHubActivity } from '@/hooks/useGitHubActivity';
 import IssueActions from '@/components/IssueActions';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
 import styles from './page.module.css';
 
 interface Stats {
@@ -19,22 +21,52 @@ interface Stats {
 export default function DashboardClient() {
   const { user, profile, loading: authLoading } = useAuth();
   const { getTrackedIssues, loading: dbLoading } = useIssueManagement();
+  const { fetchUserActivity, loading: activityLoading } = useGitHubActivity();
   
-  const [filterStatus, setFilterStatus] = useState<'all' | 'saved' | 'ongoing' | 'pr_submitted' | 'completed' | 'resume_based'>('all');
+  const [filterStatus, setFilterStatus] = useState<'saved' | 'ongoing' | 'pr_submitted' | 'completed' | 'resume_based'>('saved');
   const [savedIssues, setSavedIssues] = useState<TrackedIssue[]>([]);
+  const [githubData, setGithubData] = useState<{prs: any[], issues: any[]}>({prs: [], issues: []});
   const [initialLoading, setInitialLoading] = useState(true);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState(12);
+
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useGSAP(() => {
+    gsap.fromTo('.issue-card',
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.4, stagger: 0.05, ease: 'power2.out' }
+    );
+  }, { scope: containerRef, dependencies: [filterStatus] });
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        window.innerHeight + window.scrollY >= document.documentElement.offsetHeight - 500
+      ) {
+        setVisibleCount((prev) => prev + 12);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
       if (authLoading) return;
       
       if (user) {
-        // Fetch Saved Issues
         try {
+          // Fetch Saved Issues
           const allIssues = await getTrackedIssues();
-          console.log('DashboardClient: fetched issues', allIssues);
           setSavedIssues(allIssues || []);
+          
+          // Fetch Live Activity if profile exists
+          if (profile?.username) {
+             const activity = await fetchUserActivity();
+             setGithubData(activity);
+          }
         } finally {
           setInitialLoading(false);
         }
@@ -43,7 +75,7 @@ export default function DashboardClient() {
       }
     };
     fetchData();
-  }, [user, authLoading, getTrackedIssues]);
+  }, [user, profile, authLoading, getTrackedIssues, fetchUserActivity]);
 
   const handleStatusUpdate = (issueId: string, newStatus: TrackedIssue['status'] | null) => {
     if (!newStatus) {
@@ -59,7 +91,26 @@ export default function DashboardClient() {
     }
   };
 
-  const isComingSoonTab = ['ongoing', 'pr_submitted', 'completed', 'resume_based'].includes(filterStatus);
+  const isComingSoonTab = ['resume_based'].includes(filterStatus);
+
+  // Determine which issues to show
+  let displayIssues: any[] = [];
+  let isLiveGitHubData = false;
+
+  if (filterStatus === 'pr_submitted') {
+    displayIssues = githubData.prs.filter(pr => pr.state === 'open');
+    isLiveGitHubData = true;
+  } else if (filterStatus === 'ongoing') {
+    displayIssues = githubData.issues.filter(i => i.state === 'open');
+    isLiveGitHubData = true;
+  } else if (filterStatus === 'completed') {
+    const closedPrs = githubData.prs.filter(pr => pr.state === 'merged' || pr.state === 'closed');
+    const closedIssues = githubData.issues.filter(i => i.state === 'closed');
+    const dbCompleted = savedIssues.filter(i => i.status === 'completed');
+    displayIssues = [...closedPrs, ...closedIssues, ...dbCompleted];
+  } else {
+    displayIssues = savedIssues.filter(i => i.status === 'saved');
+  }
 
   if (authLoading || (initialLoading && user)) {
     return <div className={styles.loadingContainer}>Loading dashboard...</div>;
@@ -77,7 +128,6 @@ export default function DashboardClient() {
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        {/* ... (keep header content) ... */}
         <div className={styles.welcomeSection}>
           {profile?.avatar_url && (
             <img 
@@ -91,13 +141,64 @@ export default function DashboardClient() {
             <p className={styles.subtitle}>Here is your contribution overview</p>
           </div>
         </div>
+
+        {/* Contribution Graph (Desktop) */}
+        <div className={styles.desktopOnly}>
+        {profile?.username && (
+          <div style={{ marginTop: '25px', padding: '20px', background: 'var(--color-bg-secondary)', borderRadius: '16px', border: '1px solid var(--color-border)', overflowX: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+               <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>Contribution Activity</h3>
+               <span style={{ fontSize: '0.8rem', color: 'var(--color-text-tertiary)' }}>Last 365 Days</span>
+            </div>
+            <img 
+              src={`https://ghchart.rshah.org/22c55e/${profile.username}`} 
+              alt="Contribution Graph" 
+              style={{ width: '100%', minWidth: '700px', display: 'block', height: 'auto' }}
+            />
+          </div>
+        )}
+        </div>
+
+        {/* Stats Menu (Mobile) */}
+        <div className={styles.mobileOnly}>
+            <div className={styles.mobileStatsGrid}>
+                <div className={styles.mobileStatCard}>
+                    <div className={styles.mobileStatValue}>{savedIssues.filter(i => i.status === 'saved').length}</div>
+                    <div className={styles.mobileStatLabel}>Saved</div>
+                </div>
+                <div className={styles.mobileStatCard}>
+                    <div className={styles.mobileStatValue}>{
+                        // Approximate ongoing (user issues + tracked ongoing)
+                        savedIssues.filter(i => i.status === 'ongoing').length + (githubData.issues?.filter((i: any) => i.state === 'open').length || 0)
+                    }</div>
+                    <div className={styles.mobileStatLabel}>Ongoing</div>
+                </div>
+                 <div className={styles.mobileStatCard}>
+                    <div className={styles.mobileStatValue}>{githubData.prs?.filter((p: any) => p.state === 'open').length || 0}</div>
+                    <div className={styles.mobileStatLabel}>Open PRs</div>
+                </div>
+                 <div className={styles.mobileStatCard}>
+                    <div className={styles.mobileStatValue}>{
+                        savedIssues.filter(i => i.status === 'completed').length + 
+                        (githubData.issues?.filter((i: any) => i.state === 'closed').length || 0) +
+                        (githubData.prs?.filter((p: any) => p.state === 'merged').length || 0)
+                    }</div>
+                    <div className={styles.mobileStatLabel}>Completed</div>
+                </div>
+            </div>
+        </div>
       </header>
       
       {/* Issues List Content */}
       <div className={styles.issuesTab}>
         <div className={styles.sectionHeader} style={{ marginBottom: '20px', flexDirection: 'column', alignItems: 'flex-start', gap: '15px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-              <h2>All Tracked Issues</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 600 }}>
+                {filterStatus === 'pr_submitted' ? 'My Open PRs (Live)' : 
+                 filterStatus === 'ongoing' ? 'My Issues (Live)' : 
+                 filterStatus === 'completed' ? 'Completed & Closed' :
+                 'Saved Issues'}
+              </h2>
               <Link href="/discover" className={styles.discoverBtn}>
                   Find New Issues +
               </Link>
@@ -105,7 +206,7 @@ export default function DashboardClient() {
             
             {/* Filter Pills */}
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              {['all', 'saved', 'ongoing', 'pr_submitted', 'completed'].map(status => (
+              {['saved', 'ongoing', 'pr_submitted', 'completed'].map(status => (
                 <button
                   key={status}
                   onClick={() => setFilterStatus(status as any)}
@@ -144,83 +245,160 @@ export default function DashboardClient() {
                <p style={{ color: 'var(--color-text-secondary)', maxWidth: '400px', margin: '0 auto' }}>
                   We are working hard to bring you {filterStatus.replace('_', ' ')} features!
                </p>
-               {filterStatus === 'resume_based' && (
-                  <p style={{ fontSize: '0.9rem', color: 'var(--color-text-tertiary)' }}>
-                      AI-powered resume analysis to find perfect issues for you.
-                  </p>
-               )}
            </div>
         ) : (
-            savedIssues
-              .filter(i => filterStatus === 'all' || i.status === filterStatus)
-              .length === 0 ? (
+            displayIssues.length === 0 ? (
                 <div className={styles.emptyCard}>
-                  <p>No issues found for this filter.</p>
-                  {filterStatus === 'all' && (
+                  <p>
+                    {isLiveGitHubData 
+                      ? `No ${filterStatus === 'pr_submitted' ? 'merged/open PRs' : 'issues'} found on your GitHub.` 
+                      : 'No issues found for this filter.'}
+                  </p>
+                  {!isLiveGitHubData && filterStatus === 'saved' && (
                     <Link href="/discover" style={{ marginTop: '10px', display: 'inline-block', color: 'var(--color-primary)' }}>
                       Go discover some issues →
                     </Link>
                   )}
                 </div>
             ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
-                  {savedIssues
-                    .filter(i => filterStatus === 'all' || i.status === filterStatus)
-                    .map(issue => (
-                      <div key={issue.id} style={{ 
-                        background: 'var(--color-bg-card)', 
-                        border: '1px solid var(--color-border)', 
-                        borderRadius: '16px', 
-                        padding: '20px',
-                        position: 'relative',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '15px',
-                        zIndex: openMenuId === issue.id ? 100 : 1
-                      }}>
-                        {/* ... (Keep existing card content) ... */}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                          <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--color-text-primary)', margin: 0, flex: 1, paddingRight: '10px' }}>
-                              <a href={issue.issue_url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit' }}>
-                                 {issue.title}
-                              </a>
+                <div ref={containerRef} style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+                  {Object.entries(
+                    displayIssues.slice(0, visibleCount).reduce((acc, issue) => {
+                      let groupKey = '';
+                      if (filterStatus === 'completed') {
+                          // Group by Status Category
+                          if (issue.state === 'merged') groupKey = '💜 Merged PRs';
+                          else if (issue.state === 'closed') {
+                               if (issue.pull_request) groupKey = '❌ Closed PRs (Not Merged)';
+                               else groupKey = '✅ Completed Issues';
+                          }
+                          else if (issue.status === 'completed') groupKey = '✅ Manually Completed';
+                          else groupKey = '📁 Archived';
+                      } else {
+                          // Flat List for others
+                          groupKey = 'all';
+                      }
+                      
+                      if (!acc[groupKey]) acc[groupKey] = [];
+                      acc[groupKey].push(issue);
+                      return acc;
+                    }, {} as Record<string, any[]>)
+                  ).map(([groupTitle, issues]) => (
+                    <div key={groupTitle} className="repo-group">
+                      {groupTitle !== 'all' && (
+                          <h3 style={{ 
+                            fontSize: '1.1rem', 
+                            marginBottom: '15px', 
+                            paddingBottom: '10px', 
+                            borderBottom: '1px solid var(--color-border)',
+                            color: 'var(--color-text-secondary)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px'
+                          }}>
+                             <span style={{ opacity: 0.7 }}></span> {groupTitle}
+                             <span style={{ fontSize: '0.8rem', background: 'var(--color-bg-tertiary)', padding: '2px 8px', borderRadius: '12px' }}>{(issues as any[]).length}</span>
                           </h3>
-                          {issue.has_bounty && <span title="Bounty Available">💰</span>}
-                        </div>
-                        
-                        <p style={{ fontSize: '0.9rem', color: 'var(--color-text-secondary)', margin: 0 }}>{issue.repo_full_name}</p>
-                        
-                        <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
-                            {issue.labels?.slice(0, 3).map((label: string, idx: number) => (
-                                <span key={idx} style={{ fontSize: '0.75rem', padding: '2px 6px', background: 'var(--color-bg-tertiary)', borderRadius: '4px', color: 'var(--color-text-secondary)' }}>
-                                    {label}
-                                </span>
-                            ))}
-                        </div>
-    
-                        <div style={{ marginTop: 'auto', paddingTop: '15px', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontSize: '0.8rem', color: 'var(--color-text-tertiary)' }}>
-                               #{issue.issue_number}
-                            </span>
+                      )}
+                      
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '20px' }}>
+                        {(issues as any[]).map((issue: any) => {
+                            // Normalize data between DB and GitHub API
+                            const issueId = issue.id; // DB ID or GitHub ID
+                            const issueUrl = issue.issue_url || issue.html_url;
+                            const issueNumber = issue.issue_number || issue.number;
+                            const issueTitle = issue.title;
+                            const currentRepoName = issue.repo_full_name || ((issue.repository_url || '').split('/').slice(-2).join('/')) || 'Unknown';
                             
-                            <div style={{ transform: 'scale(0.9)', transformOrigin: 'right center' }}>
-                                <IssueActions 
-                                    issue={{
-                                        url: issue.issue_url,
-                                        number: issue.issue_number,
-                                        repo: issue.repo_full_name,
-                                        title: issue.title,
-                                        labels: issue.labels,
-                                        hasBounty: issue.has_bounty
-                                    }}
-                                    initialStatus={issue.status as any}
-                                    onStatusChange={(newStatus) => handleStatusUpdate(issue.id, newStatus)}
-                                    isOpen={openMenuId === issue.id}
-                                    onToggleMenu={(isOpen) => setOpenMenuId(isOpen ? issue.id : null)}
-                                />
+                            // Normalize labels
+                            const labels = Array.isArray(issue.labels) 
+                              ? issue.labels.map((l: any) => typeof l === 'string' ? l : l.name) 
+                              : [];
+
+                            const isGitHubItem = !!issue.state;
+
+                            // Status Badge Logic
+                            const state = issue.state || (issue.status === 'completed' ? 'completed' : 'open');
+                            let statusColor = '#22c55e'; // Green (Open)
+                            if (state === 'closed') statusColor = '#ef4444'; // Red
+                            if (state === 'merged') statusColor = '#a855f7'; // Purple
+                            if (state === 'completed') statusColor = '#22c55e'; // Green check
+
+                            return (
+                            <div key={issueId} className="issue-card" style={{ 
+                              background: 'var(--color-bg-card)', 
+                              border: '1px solid var(--color-border)', 
+                              borderRadius: '16px', 
+                              padding: '20px',
+                              position: 'relative',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '15px',
+                              zIndex: openMenuId === issueId ? 100 : 1
+                            }}>
+                              {/* Status Badge for Live Data or Completed */}
+                              {(isLiveGitHubData || filterStatus === 'completed') && (
+                                <div style={{ position: 'absolute', top: '10px', right: '10px' }}>
+                                    <span style={{ 
+                                        fontSize: '0.7rem', 
+                                        padding: '2px 8px', 
+                                        borderRadius: '12px', 
+                                        background: `${statusColor}15`, // 15 = ~8% opacity
+                                        color: statusColor,
+                                        border: `1px solid ${statusColor}40`,
+                                        textTransform: 'capitalize'
+                                    }}>
+                                        {state}
+                                    </span>
+                                </div>
+                              )}
+
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', paddingRight: (isLiveGitHubData || filterStatus === 'completed') ? '60px' : '0' }}>
+                                <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--color-text-primary)', margin: 0, flex: 1, paddingRight: '10px' }}>
+                                    <a href={issueUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit' }}>
+                                      {issueTitle}
+                                    </a>
+                                </h3>
+                                {!isLiveGitHubData && filterStatus !== 'completed' && issue.has_bounty && <span title="Bounty Available">💰</span>}
+                              </div>
+                              
+                              {/* Show Repo Name Always (as requested) */}
+                              <p style={{ fontSize: '0.9rem', color: 'var(--color-text-secondary)', margin: '0 0 5px 0' }}>{currentRepoName}</p>
+                              
+                              <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', marginTop: '5px' }}>
+                                  {labels.slice(0, 3).map((label: string, idx: number) => (
+                                      <span key={idx} style={{ fontSize: '0.75rem', padding: '2px 6px', background: 'var(--color-bg-tertiary)', borderRadius: '4px', color: 'var(--color-text-secondary)' }}>
+                                          {label}
+                                      </span>
+                                  ))}
+                              </div>
+          
+                              <div style={{ marginTop: 'auto', paddingTop: '15px', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                  <span style={{ fontSize: '0.8rem', color: 'var(--color-text-tertiary)' }}>
+                                    #{issueNumber}
+                                  </span>
+                                  
+                                  <div style={{ transform: 'scale(0.9)', transformOrigin: 'right center' }}>
+                                      <IssueActions 
+                                          issue={{
+                                              url: issueUrl,
+                                              number: issueNumber,
+                                              repo: currentRepoName,
+                                              title: issueTitle,
+                                              labels: labels,
+                                              hasBounty: issue.has_bounty
+                                          }}
+                                          initialStatus={filterStatus === 'completed' ? undefined : issue.status as any}
+                                          onStatusChange={(newStatus) => !isGitHubItem && filterStatus !== 'completed' && handleStatusUpdate(issueId, newStatus)}
+                                          isOpen={openMenuId === issueId}
+                                          onToggleMenu={(isOpen) => setOpenMenuId(isOpen ? issueId : null)}
+                                      />
+                                  </div>
+                              </div>
                             </div>
-                        </div>
+                        );})}
                       </div>
+                    </div>
                   ))}
                 </div>
             )
