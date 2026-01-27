@@ -209,6 +209,7 @@
   font-weight: 800;
   background: linear-gradient(180deg, #fff, #bbb);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   line-height: 1;
 }
@@ -385,38 +386,7 @@
   border-radius: var(--radius-xl);
 }
 
-@media (max-width: 900px) {
-  .splitLayout {
-    grid-template-columns: 1fr;
-  }
-  .stickyVisual {
-    display: none; /* Hide visual on mobile, focus on content */
-  }
-  .scrollingCards {
-    gap: var(--space-xl);
-    padding-bottom: 0;
-    text-align: center; /* Center text on mobile */
-  }
-  .featureDetailCard {
-    opacity: 1;
-    min-height: auto;
-    /* Responsive adjustments */
-    position: relative; 
-    top: 0 !important;
-    margin-bottom: var(--space-xl);
-    padding: var(--space-xl);
-    align-items: center; /* Center content */
-  }
-  
-  .featureDetailCard h3 {
-    font-size: 1.5rem;
-    margin-bottom: var(--space-sm);
-  }
-  
-  .featureDetailCard p {
-    margin-bottom: var(--space-lg);
-  }
-}
+
 
 
 /* Bounty Section */
@@ -734,6 +704,50 @@
 }
 
 /* Responsive */
+@media (max-width: 900px) {
+  .splitLayout {
+    grid-template-columns: 1fr;
+  }
+  .stickyVisual {
+    display: none; /* Hide visual on mobile, focus on content */
+  }
+  .scrollingCards {
+    gap: var(--space-xl);
+    padding-bottom: 250px; /* Needs space for scrolling */
+    text-align: center; /* Center text on mobile */
+  }
+  .featureDetailCard {
+    opacity: 1;
+    min-height: auto;
+    /* Responsive adjustments */
+    
+    /* Keep Sticky for Mobile Stack Effect */
+    position: sticky; 
+    margin-bottom: var(--space-4xl);
+    padding: var(--space-xl);
+    align-items: center; /* Center content */
+    margin-left: 0;
+    margin-right: 0;
+  }
+  
+  /* Adjusted top offsets for mobile (smaller header) */
+  .featureDetailCard:nth-child(1) { top: 120px; }
+  .featureDetailCard:nth-child(2) { top: 135px; }
+  .featureDetailCard:nth-child(3) { top: 150px; }
+  .featureDetailCard:nth-child(4) { top: 165px; }
+
+  
+  .featureDetailCard h3 {
+    font-size: 1.5rem;
+    margin-bottom: var(--space-sm);
+  }
+  
+  .featureDetailCard p {
+    margin-bottom: var(--space-lg);
+  }
+}
+
+
 @media (max-width: 1024px) {
   .featuresGrid {
     grid-template-columns: repeat(2, 1fr);
@@ -754,15 +768,30 @@
 }
 
 @media (max-width: 768px) {
+  /* Restore margins - "Just a little margin" */
   .homePage {
-    padding: var(--space-lg);
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .container {
+    padding-left: var(--space-md);
+    padding-right: var(--space-md);
+    max-width: 100%;
+  }
+
+  /* Full width sections */
+  .section {
+    padding-left: var(--space-md);
+    padding-right: var(--space-md);
+    /* Allow cards inside to touch edges if needed, but container constrains them */
   }
 
   .hero {
     height: auto;
     min-height: auto;
     /* 64px Header + 32px Banner + Extra Spacing = 140px safe zone */
-    padding: 140px var(--space-lg) var(--space-4xl); 
+    padding: 140px var(--space-md) var(--space-4xl); 
   }
 
   .heroTitle {
@@ -792,8 +821,24 @@
   .trendingGrid,
   .eventsGrid {
     grid-template-columns: 1fr;
+    gap: var(--space-sm);
+    padding: 0;
   }
   
+  /* Card Styles - Small margin */
+  .trendingCard, 
+  .bountyCard, 
+  .contributorCard {
+    margin: 0;
+  }
+  
+  /* Feature cards - ensure they look good stacked */
+  .featureDetailCard {
+    /* Ensure background is opaque enough to hide card behind */
+    background: var(--color-bg-card); 
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.5); /* Shadow on top */
+  }
+
   .heroCta {
     flex-direction: column;
     align-items: stretch;
@@ -802,10 +847,6 @@
   .primaryBtn, .secondaryBtn {
     width: 100%;
     padding: 16px 32px;
-  }
-  
-  .container {
-    padding: 0 var(--space-lg);
   }
   
   .sectionTitle {

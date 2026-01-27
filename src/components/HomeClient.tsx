@@ -125,21 +125,19 @@ export default function HomeClient({
           y: 50,
           opacity: 0,
           scale: 0.95,
-          filter: 'blur(10px) brightness(1.2)', // The "Dazzle" effect
         },
         {
           scrollTrigger: {
             trigger: section,
-            start: 'top 85%',
+            start: 'top 85%', // Trigger when top of section hits 85% of viewport height (near bottom)
             toggleActions: 'play none none reverse',
           },
           y: 0,
           opacity: 1,
           scale: 1,
-          filter: 'blur(0px) brightness(1)',
-          duration: 1,
+          duration: 0.8,
           stagger: 0.1,
-          ease: 'power4.out',
+          ease: 'power3.out',
         }
       );
     });
@@ -280,7 +278,16 @@ export default function HomeClient({
 
             {/* Right: Scrolling Details */}
             <div className={styles.scrollingCards}>
-              <div className={styles.featureDetailCard} style={{ borderColor: activeFeature === 0 ? 'var(--color-primary)' : 'var(--color-border)' }}>
+              <div 
+                className={styles.featureDetailCard} 
+                style={{ 
+                  borderColor: activeFeature === 0 ? 'var(--color-primary)' : 'var(--color-border)',
+                  opacity: 1, // Keep solid to prevent overlap visibility
+                  filter: activeFeature === 0 ? 'brightness(1)' : 'brightness(0.8)', // Dim instead of transparent
+                  transform: activeFeature === 0 ? 'scale(1) translateY(0)' : 'scale(0.98) translateY(10px)',
+                  transition: 'all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+                }}
+              >
                 {/* Professional Icon Placeholder - SVG or Font Icon */}
                 <div style={{ width: '40px', height: '40px', background: 'rgba(66, 133, 244, 0.1)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
                    <div style={{ width: '12px', height: '12px', border: '2px solid #4285F4', borderRadius: '50%' }}></div>
@@ -293,7 +300,16 @@ export default function HomeClient({
                 </div>
               </div>
               
-               <div className={styles.featureDetailCard} style={{ borderColor: activeFeature === 1 ? '#22c55e' : 'var(--color-border)' }}>
+               <div 
+                 className={styles.featureDetailCard} 
+                 style={{ 
+                   borderColor: activeFeature === 1 ? '#22c55e' : 'var(--color-border)',
+                   opacity: 1,
+                   filter: activeFeature === 1 ? 'brightness(1)' : 'brightness(0.8)',
+                   transform: activeFeature === 1 ? 'scale(1) translateY(0)' : 'scale(0.98) translateY(10px)',
+                   transition: 'all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+                 }}
+               >
                  <div style={{ width: '40px', height: '40px', background: 'rgba(34, 197, 94, 0.1)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
                    <div style={{ width: '2px', height: '16px', background: '#22c55e', marginRight: '2px' }}></div>
                    <div style={{ width: '2px', height: '24px', background: '#22c55e' }}></div>
@@ -306,7 +322,16 @@ export default function HomeClient({
                 </div>
               </div>
 
-               <div className={styles.featureDetailCard} style={{ borderColor: activeFeature === 2 ? '#eab308' : 'var(--color-border)' }}>
+               <div 
+                 className={styles.featureDetailCard} 
+                 style={{ 
+                   borderColor: activeFeature === 2 ? '#eab308' : 'var(--color-border)',
+                   opacity: 1,
+                   filter: activeFeature === 2 ? 'brightness(1)' : 'brightness(0.8)',
+                   transform: activeFeature === 2 ? 'scale(1) translateY(0)' : 'scale(0.98) translateY(10px)',
+                   transition: 'all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+                 }}
+               >
                  <div style={{ width: '40px', height: '40px', background: 'rgba(234, 179, 8, 0.1)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
                    <div style={{ width: '16px', height: '12px', border: '2px solid #eab308', borderRadius: '2px' }}></div>
                 </div>
@@ -318,7 +343,16 @@ export default function HomeClient({
                 </div>
               </div>
 
-               <div className={styles.featureDetailCard} style={{ borderColor: activeFeature === 3 ? '#9C4668' : 'var(--color-border)' }}>
+               <div 
+                 className={styles.featureDetailCard} 
+                 style={{ 
+                   borderColor: activeFeature === 3 ? '#9C4668' : 'var(--color-border)',
+                   opacity: 1,
+                   filter: activeFeature === 3 ? 'brightness(1)' : 'brightness(0.8)',
+                   transform: activeFeature === 3 ? 'scale(1) translateY(0)' : 'scale(0.98) translateY(10px)',
+                   transition: 'all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+                 }}
+               >
                  <div style={{ width: '40px', height: '40px', background: 'rgba(156, 70, 104, 0.1)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
                    <div style={{ width: '16px', height: '16px', border: '2px solid #9C4668', borderRadius: '50%' }}></div>
                 </div>
@@ -454,6 +488,7 @@ export default function HomeClient({
               overflowX: 'auto', 
               gap: '20px', 
               paddingBottom: '20px',
+              paddingTop: '20px',
               scrollSnapType: 'x mandatory',
               gridTemplateColumns: 'none' // Override grid
             }}
