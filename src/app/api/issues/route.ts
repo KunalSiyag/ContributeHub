@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
   const perPage = parseInt(searchParams.get('per_page') || '20', 10);
   
   // Build the search query
-  const queryParts: string[] = ['is:issue', 'state:open'];
+  const queryParts: string[] = ['is:issue', 'state:open', 'no:assignee'];
 
   // Handle presets
   if (preset === 'good-first') {

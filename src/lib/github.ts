@@ -241,6 +241,95 @@ export function calculateMatchScore(
   return Math.min(score, maxScore);
 }
 
+// Calculate match score for an issue based on resume analysis
+export interface IssueMatchResult {
+  score: number;
+  matchReasons: string[];
+}
+
+export interface ResumeSkills {
+  skills: string[];
+  technologies: string[];
+  interests: string[];
+  experienceLevel: 'beginner' | 'intermediate' | 'advanced';
+}
+
+export function calculateIssueMatchScore(
+  issue: Issue,
+  resumeSkills: ResumeSkills,
+  repoLanguage?: string | null
+): IssueMatchResult {
+  let score = 0;
+  const matchReasons: string[] = [];
+  const labels = issue.labels.map(l => l.name.toLowerCase());
+  
+  // 1. Language match (30 points)
+  if (repoLanguage && resumeSkills.skills.some(
+    skill => skill.toLowerCase() === repoLanguage.toLowerCase()
+  )) {
+    score += 30;
+    matchReasons.push(`Matches your ${repoLanguage} skills`);
+  }
+  
+  // 2. Experience level match (25 points)
+  const beginnerLabels = ['good first issue', 'beginner', 'easy', 'first-timers-only', 'starter'];
+  const intermediateLabels = ['help wanted', 'medium', 'intermediate'];
+  const advancedLabels = ['advanced', 'complex', 'expert'];
+  
+  const hasBeginnerLabel = labels.some(l => beginnerLabels.some(bl => l.includes(bl)));
+  const hasIntermediateLabel = labels.some(l => intermediateLabels.some(il => l.includes(il)));
+  const hasAdvancedLabel = labels.some(l => advancedLabels.some(al => l.includes(al)));
+  
+  if (resumeSkills.experienceLevel === 'beginner' && hasBeginnerLabel) {
+    score += 25;
+    matchReasons.push('Perfect for beginners');
+  } else if (resumeSkills.experienceLevel === 'intermediate' && (hasIntermediateLabel || hasBeginnerLabel)) {
+    score += 20;
+    matchReasons.push('Matches your experience level');
+  } else if (resumeSkills.experienceLevel === 'advanced') {
+    score += 15; // Advanced users can handle anything
+    if (hasAdvancedLabel) {
+      score += 10;
+      matchReasons.push('Challenging issue for senior devs');
+    }
+  }
+  
+  // 3. Technology in labels/title (25 points)
+  const issueText = (issue.title + ' ' + labels.join(' ')).toLowerCase();
+  const techMatches = resumeSkills.technologies.filter(tech => 
+    issueText.includes(tech.toLowerCase())
+  );
+  if (techMatches.length > 0) {
+    score += Math.min(techMatches.length * 10, 25);
+    matchReasons.push(`Uses ${techMatches.slice(0, 2).join(', ')}`);
+  }
+  
+  // 4. Interest area match (20 points)
+  const interestKeywords: Record<string, string[]> = {
+    'web': ['frontend', 'ui', 'css', 'html', 'website'],
+    'backend': ['api', 'server', 'database', 'backend'],
+    'mobile': ['android', 'ios', 'mobile', 'react-native', 'flutter'],
+    'devops': ['docker', 'ci', 'cd', 'deploy', 'kubernetes', 'infra'],
+    'machine-learning': ['ml', 'ai', 'model', 'training', 'prediction'],
+    'documentation': ['docs', 'documentation', 'readme', 'guide'],
+    'testing': ['test', 'testing', 'coverage', 'e2e', 'unit'],
+  };
+  
+  for (const interest of resumeSkills.interests) {
+    const keywords = interestKeywords[interest] || [interest];
+    if (keywords.some(kw => issueText.includes(kw))) {
+      score += 20;
+      matchReasons.push(`Related to your interest in ${interest}`);
+      break;
+    }
+  }
+  
+  return {
+    score: Math.min(score, 100),
+    matchReasons: matchReasons.slice(0, 3), // Max 3 reasons
+  };
+}
+
 // Fetch global GitHub stats (Real-time)
 export async function getGlobalStats() {
   try {

@@ -36,6 +36,17 @@ export interface Issue {
   state: 'open' | 'closed';
   labels: Label[];
   comments: number;
+  reactions?: {
+    total_count: number;
+    '+1': number;
+    '-1': number;
+    laugh: number;
+    hooray: number;
+    confused: number;
+    heart: number;
+    rocket: number;
+    eyes: number;
+  };
   created_at: string;
   updated_at: string;
   user: {

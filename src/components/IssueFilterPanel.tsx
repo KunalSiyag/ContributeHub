@@ -5,7 +5,7 @@ import { POPULAR_LANGUAGES, CONTRIBUTION_LABELS } from '@/types';
 import styles from './IssueFilterPanel.module.css';
 
 export type IssuePreset = 'all' | 'recent' | 'good-first' | 'help-wanted' | 'top-repos';
-export type IssueSortOption = 'created' | 'updated' | 'comments';
+export type IssueSortOption = 'created' | 'updated' | 'comments' | 'reactions';
 
 interface IssueFilterPanelProps {
   selectedPreset: IssuePreset;
@@ -32,6 +32,7 @@ const SORT_OPTIONS: { value: IssueSortOption; label: string }[] = [
   { value: 'created', label: 'Newest First' },
   { value: 'updated', label: 'Recently Updated' },
   { value: 'comments', label: 'Most Comments' },
+  { value: 'reactions', label: 'Most Reactions' },
 ];
 
 export default function IssueFilterPanel({

@@ -78,6 +78,18 @@ export default function IssueCard({ issue }: IssueCardProps) {
           <span className={styles.time}>
             {timeAgo(issue.created_at)}
           </span>
+          <div className={styles.stats}>
+            {issue.comments > 0 && (
+              <span className={styles.stat} title="Comments">
+                💬 {issue.comments}
+              </span>
+            )}
+            {issue.reactions && issue.reactions.total_count > 0 && (
+              <span className={styles.stat} title="Reactions/Stars">
+                ⭐ {issue.reactions.total_count}
+              </span>
+            )}
+          </div>
         </div>
         
         <IssueActions

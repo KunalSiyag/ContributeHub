@@ -192,6 +192,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-md);
+  margin-left: var(--space-sm);
 }
 
 .stat {

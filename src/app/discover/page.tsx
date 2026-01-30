@@ -5,11 +5,13 @@ import { Repository, Issue, RepositoryFilters } from '@/types';
 import { getStoredPreferences, defaultPreferences } from '@/lib/utils';
 import { calculateMatchScore } from '@/lib/github';
 import { GSSOC_ORGANIZATIONS } from '@/lib/events';
+import { useProfileSkills } from '@/hooks/useProfileSkills';
 import ProjectCard from '@/components/ProjectCard';
 import IssueCard from '@/components/IssueCard';
 import FilterPanel from '@/components/FilterPanel';
 import IssueFilterPanel, { IssuePreset, IssueSortOption } from '@/components/IssueFilterPanel';
 import SearchBar from '@/components/SearchBar';
+import Link from 'next/link';
 import styles from './page.module.css';
 
 // Helper to get participation tags
@@ -44,6 +46,10 @@ export default function DiscoverPage() {
   // User preferences for match scoring
   const [userSkills, setUserSkills] = useState<string[]>([]);
   const [userInterests, setUserInterests] = useState<string[]>([]);
+  
+  // Profile skills for "Use My Skills" filter
+  const { skills: profileSkills, hasSkills: hasProfileSkills, isLoggedIn } = useProfileSkills();
+  const [useMySkills, setUseMySkills] = useState(false);
 
   // Load user preferences
   useEffect(() => {
@@ -106,6 +112,14 @@ export default function DiscoverPage() {
         if (searchQuery) {
           params.set('query', searchQuery);
         }
+        
+        // If using profile skills, filter by languages
+        if (useMySkills && hasProfileSkills) {
+          const skillLanguages = profileSkills.preferred_languages.slice(0, 3);
+          if (skillLanguages.length > 0) {
+            params.set('language', skillLanguages[0]);
+          }
+        }
 
         const response = await fetch('/api/issues?' + params.toString());
 
@@ -119,7 +133,7 @@ export default function DiscoverPage() {
     } finally {
       setLoading(false);
     }
-  }, [activeTab, searchQuery, selectedLanguage, selectedTopics, minStars, issuePreset, issueLanguage, issueLabels, issueSortBy]);
+  }, [activeTab, searchQuery, selectedLanguage, selectedTopics, minStars, issuePreset, issueLanguage, issueLabels, issueSortBy, useMySkills, hasProfileSkills, profileSkills]);
 
   useEffect(() => {
     fetchData();
@@ -175,18 +189,52 @@ export default function DiscoverPage() {
               onMinStarsChange={setMinStars}
             />
           ) : (
-            <IssueFilterPanel
-              selectedPreset={issuePreset}
-              onPresetChange={setIssuePreset}
-              selectedLanguage={issueLanguage}
-              onLanguageChange={setIssueLanguage}
-              selectedLabels={issueLabels}
-              onLabelsChange={setIssueLabels}
-              sortBy={issueSortBy}
-              onSortChange={setIssueSortBy}
-              labelSearch={issueLabelSearch}
-              onLabelSearchChange={setIssueLabelSearch}
-            />
+            <>
+              {/* My Skills Toggle */}
+              {isLoggedIn && hasProfileSkills && (
+                <div className={styles.mySkillsToggle}>
+                  <label className={styles.toggleLabel}>
+                    <input
+                      type="checkbox"
+                      checked={useMySkills}
+                      onChange={(e) => setUseMySkills(e.target.checked)}
+                    />
+                    <span className={styles.toggleSlider}></span>
+                    <span className={styles.toggleText}>
+                      📄 Filter by My Skills
+                    </span>
+                  </label>
+                  {useMySkills && (
+                    <div className={styles.activeSkills}>
+                      {profileSkills.preferred_languages.slice(0, 3).map(skill => (
+                        <span key={skill} className={styles.skillTag}>{skill}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {!isLoggedIn && (
+                <div className={styles.mySkillsPromo}>
+                  <span>📄</span>
+                  <p>Upload your resume to filter issues by your skills</p>
+                  <Link href="/resume" className={styles.promoLink}>Get Started</Link>
+                </div>
+              )}
+              
+              <IssueFilterPanel
+                selectedPreset={issuePreset}
+                onPresetChange={setIssuePreset}
+                selectedLanguage={issueLanguage}
+                onLanguageChange={setIssueLanguage}
+                selectedLabels={issueLabels}
+                onLabelsChange={setIssueLabels}
+                sortBy={issueSortBy}
+                onSortChange={setIssueSortBy}
+                labelSearch={issueLabelSearch}
+                onLabelSearchChange={setIssueLabelSearch}
+              />
+            </>
           )}
 
           {/* Results */}

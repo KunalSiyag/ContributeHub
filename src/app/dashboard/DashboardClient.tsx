@@ -206,7 +206,7 @@ export default function DashboardClient() {
             
             {/* Filter Pills */}
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              {['saved', 'ongoing', 'pr_submitted', 'completed'].map(status => (
+              {['saved', 'ongoing', 'pr_submitted', 'completed', 'resume_based'].map(status => (
                 <button
                   key={status}
                   onClick={() => setFilterStatus(status as any)}
@@ -223,7 +223,7 @@ export default function DashboardClient() {
                     transition: 'all 0.2s'
                   }}
                 >
-                  {status.replace('_', ' ').replace('resume based', 'Resume Based')}
+                  {status === 'resume_based' ? '📄 Resume Based' : status.replace('_', ' ')}
                 </button>
               ))}
             </div>
@@ -240,11 +240,26 @@ export default function DashboardClient() {
               gap: '15px',
               minHeight: '300px'
            }}>
-               <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🚧</div>
-               <h2 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Coming Soon</h2>
+               <div style={{ fontSize: '3rem', marginBottom: '10px' }}>📄</div>
+               <h2 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Resume-Based Recommendations</h2>
                <p style={{ color: 'var(--color-text-secondary)', maxWidth: '400px', margin: '0 auto' }}>
-                  We are working hard to bring you {filterStatus.replace('_', ' ')} features!
+                  Upload your resume and get personalized issue recommendations matched to your skills.
                </p>
+               <Link 
+                 href="/resume" 
+                 style={{ 
+                   marginTop: '10px', 
+                   padding: '12px 24px', 
+                   background: 'linear-gradient(135deg, var(--color-primary), var(--color-accent-purple))', 
+                   borderRadius: '12px', 
+                   color: 'white', 
+                   textDecoration: 'none', 
+                   fontWeight: 600,
+                   transition: 'transform 0.2s, box-shadow 0.2s'
+                 }}
+               >
+                 Upload Resume →
+               </Link>
            </div>
         ) : (
             displayIssues.length === 0 ? (
