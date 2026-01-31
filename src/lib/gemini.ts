@@ -37,7 +37,7 @@ export async function analyzeResumeWithAI(resumeText: string): Promise<Partial<R
 
   try {
     const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite' });
 
     // Truncate very long resumes to avoid token limits
     const truncatedText = resumeText.slice(0, 8000);
