@@ -5,7 +5,7 @@
 
 .mainContent {
   flex: 1;
-  margin-left: 240px;
+  margin-left: var(--dynamic-sidebar-width, 240px);
   padding: var(--space-xl);
   background: var(--color-bg-primary);
   min-height: 100vh;
@@ -16,7 +16,7 @@
 
 @media (max-width: 1024px) {
   .mainContent {
-    margin-left: 0;
+    margin-left: 0 !important; /* Force full width on mobile/tablet */
     padding: var(--space-md);
     padding-top: calc(64px + var(--space-md)); /* Header height + spacing */
   }

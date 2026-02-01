@@ -76,21 +76,35 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(450px, 1fr)); /* Wide Project Cards */
   gap: var(--space-lg);
 }
 
 .issueGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(500px, 1fr)); /* Wide Issue Cards */
   gap: var(--space-lg);
 }
 
 /* Loading State */
 .loadingGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
   gap: var(--space-lg);
+}
+
+@media (max-width: 1024px) {
+  /* Tablet optimization: Ensure at least 1-2 cols based on width */
+  .grid, .issueGrid, .loadingGrid {
+    gap: var(--space-md);
+  }
+}
+
+@media (max-width: 640px) {
+  .grid, .issueGrid, .loadingGrid {
+    grid-template-columns: 1fr;
+    gap: 15px; /* Use px for consistency with dashboard */
+  }
 }
 
 .skeleton {

@@ -301,22 +301,13 @@ export default function DashboardClient() {
                   ).map(([groupTitle, issues]) => (
                     <div key={groupTitle} className="repo-group">
                       {groupTitle !== 'all' && (
-                          <h3 style={{ 
-                            fontSize: '1.1rem', 
-                            marginBottom: '15px', 
-                            paddingBottom: '10px', 
-                            borderBottom: '1px solid var(--color-border)',
-                            color: 'var(--color-text-secondary)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '10px'
-                          }}>
+                          <h3 className={styles.repoGroupHeader}>
                              <span style={{ opacity: 0.7 }}></span> {groupTitle}
                              <span style={{ fontSize: '0.8rem', background: 'var(--color-bg-tertiary)', padding: '2px 8px', borderRadius: '12px' }}>{(issues as any[]).length}</span>
                           </h3>
                       )}
                       
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '20px' }}>
+                      <div className={styles.issuesGrid}>
                         {(issues as any[]).map((issue: any) => {
                             // Normalize data between DB and GitHub API
                             const issueId = issue.id; // DB ID or GitHub ID
@@ -340,15 +331,7 @@ export default function DashboardClient() {
                             if (state === 'completed') statusColor = '#22c55e'; // Green check
 
                             return (
-                            <div key={issueId} className="issue-card" style={{ 
-                              background: 'var(--color-bg-card)', 
-                              border: '1px solid var(--color-border)', 
-                              borderRadius: '16px', 
-                              padding: '20px',
-                              position: 'relative',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              gap: '15px',
+                            <div key={issueId} className={`${styles.issueCard} issue-card`} style={{ 
                               zIndex: openMenuId === issueId ? 100 : 1
                             }}>
                               {/* Status Badge for Live Data or Completed */}

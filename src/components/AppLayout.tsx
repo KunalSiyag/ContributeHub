@@ -50,7 +50,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
           display: 'flex', 
           flexDirection: 'column', 
           minHeight: '100vh',
-          marginLeft: sidebarCollapsed ? '64px' : '240px' 
+          // Pass dynamic width as CSS variable so media queries can override it
+          ['--dynamic-sidebar-width' as any]: sidebarCollapsed ? '64px' : '240px'
         }}
       >
         <div style={{ flex: 1, width: '100%' }}>

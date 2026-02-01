@@ -84,45 +84,38 @@ export default function IssueFilterPanel({
 
       {isOpen && (
         <div className={styles.content}>
-          {/* Tracked Repos Section */}
-          {trackedRepos.length > 0 && (
-            <div className={styles.section}>
-              <label className={styles.label}>📌 My Tracked Repos</label>
-              <button
-                className={`${styles.presetBtn} ${selectedPreset === 'tracked' ? styles.presetBtnActive : ''}`}
-                onClick={() => onPresetChange('tracked')}
-              >
-                <span className={styles.presetIcon}>🎯</span>
-                <span className={styles.presetLabel}>
-                  Tracked ({trackedRepos.length})
-                </span>
-              </button>
-              {onManageTracked && (
-                <button className={styles.manageBtn} onClick={onManageTracked}>
-                  Manage Tracked Repos
-                </button>
-              )}
-            </div>
-          )}
-
-          {/* Quick Filters (Presets) */}
+          {/* Quick Filters (Presets) - Now a Dropdown */}
           <div className={styles.section}>
-            <label className={styles.label}>Quick Filters</label>
-            <div className={styles.presets}>
-              {PRESETS.map((preset) => (
-                <button
-                  key={preset.value}
-                  className={`${styles.presetBtn} ${
-                    selectedPreset === preset.value ? styles.presetBtnActive : ''
-                  }`}
-                  onClick={() => onPresetChange(preset.value)}
-                  title={preset.description}
-                >
-                  <span className={styles.presetIcon}>{preset.icon}</span>
-                  <span className={styles.presetLabel}>{preset.label}</span>
-                </button>
-              ))}
-            </div>
+            <label className={styles.label}>Filter By</label>
+            <select
+              className={styles.select}
+              value={selectedPreset}
+              onChange={(e) => onPresetChange(e.target.value as IssuePreset)}
+            >
+              <optgroup label="Presets">
+                {PRESETS.map((preset) => (
+                  <option key={preset.value} value={preset.value}>
+                    {preset.icon} {preset.label}
+                  </option>
+                ))}
+              </optgroup>
+              
+              {trackedRepos.length > 0 && (
+                <optgroup label="My Activity">
+                  <option value="tracked">🎯 Tracked Repos ({trackedRepos.length})</option>
+                </optgroup>
+              )}
+            </select>
+            
+            {selectedPreset === 'tracked' && onManageTracked && (
+               <button 
+                 onClick={onManageTracked}
+                 className={styles.manageBtn}
+                 style={{ marginTop: '5px', width: '100%' }}
+               >
+                 Manage Tracked Repos
+               </button>
+            )}
           </div>
 
           {/* Sort Options */}

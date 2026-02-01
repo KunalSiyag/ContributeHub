@@ -10,6 +10,13 @@ export default function GlobalLoader() {
   const pathname = usePathname();
 
   useEffect(() => {
+    // Only show loader on Homepage
+    if (pathname !== '/') {
+      setMounted(false);
+      setLoading(false);
+      return;
+    }
+
     // Show loader on route change
     setLoading(true);
     setMounted(true);
@@ -23,7 +30,7 @@ export default function GlobalLoader() {
     return () => clearTimeout(timer);
   }, [pathname]);
 
-  if (!mounted) return null;
+  if (!mounted || pathname !== '/') return null;
 
   return (
     <div className={`${styles.container} ${!loading ? styles.hidden : ''}`}>
