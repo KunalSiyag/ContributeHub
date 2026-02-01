@@ -132,6 +132,24 @@
   text-overflow: ellipsis;
 }
 
+/* Disabled state for logged-out dashboard items */
+.navItem.disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.navItem.disabled:hover {
+  background: transparent;
+  cursor: not-allowed;
+}
+
+.lockIcon {
+  margin-left: auto;
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
 /* User Section */
 .userSection {
   padding: var(--space-md);

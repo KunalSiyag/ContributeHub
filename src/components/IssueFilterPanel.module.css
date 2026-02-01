@@ -6,8 +6,6 @@
   border-radius: var(--radius-xl);
   padding: var(--space-md);
   height: fit-content;
-  position: sticky;
-  top: calc(var(--header-height) + var(--space-lg));
 }
 
 .header {
@@ -65,7 +63,7 @@
 /* Preset Filters */
 .presets {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: var(--space-xs);
 }
 
@@ -81,6 +79,8 @@
   cursor: pointer;
   transition: all var(--transition-fast);
   text-align: left;
+  flex: 1;
+  min-width: 120px;
 }
 
 .presetBtn:hover {
@@ -206,11 +206,99 @@
   background: rgba(239, 68, 68, 0.1);
 }
 
-/* Mobile responsiveness */
-@media (max-width: 768px) {
+/* Tracked Repos Section */
+.trackedSection {
+  padding: var(--space-md);
+  background: linear-gradient(145deg, rgba(59, 130, 246, 0.08), rgba(45, 212, 191, 0.05));
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: var(--radius-lg);
+}
+
+.trackedBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.trackedBtn:hover {
+  background: var(--color-bg-hover);
+  border-color: var(--color-accent-blue);
+}
+
+.trackedBtnActive {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: var(--color-accent-blue);
+  color: var(--color-accent-blue);
+}
+
+/* Mobile responsiveness - Flex layout, no floating */
+@media (max-width: 1024px) {
   .panel {
     width: 100%;
     position: static;
     margin-bottom: var(--space-lg);
   }
+
+  .presets {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .presetBtn {
+    flex: 0 1 auto;
+    min-width: auto;
+  }
 }
+
+@media (max-width: 768px) {
+  .panel {
+    padding: var(--space-sm);
+  }
+
+  .content {
+    gap: var(--space-md);
+  }
+
+  /* Horizontal scroll for presets on very small screens */
+  .presets {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: var(--space-sm);
+    padding-bottom: var(--space-xs);
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .presets::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .presets::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 2px;
+  }
+
+  .presetBtn {
+    flex-shrink: 0;
+    padding: var(--space-xs) var(--space-sm);
+  }
+
+  .presetLabel {
+    font-size: 0.8rem;
+  }
+
+  /* Stack labels horizontally with scroll */
+  .labels {
+    max-height: 100px;
+    overflow-y: auto;
+  }
+}
+

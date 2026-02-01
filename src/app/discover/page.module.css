@@ -1,10 +1,12 @@
 .page {
   padding: var(--space-lg);
+  width: 100%;
 }
 
 .container {
-  max-width: var(--max-content-width);
+  max-width: 100%; /* Use full width as requested */
   margin: 0 auto;
+  padding-right: var(--space-md); /* Add some right padding for breathing room */
 }
 
 .header {
@@ -74,20 +76,20 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: var(--space-lg);
 }
 
 .issueGrid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
   gap: var(--space-lg);
 }
 
 /* Loading State */
 .loadingGrid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: var(--space-lg);
 }
 

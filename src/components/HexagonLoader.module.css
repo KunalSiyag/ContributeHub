@@ -1,0 +1,87 @@
+/* Hexagon Loader */
+.container {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg-primary);
+  transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55); /* Wompy ease */
+}
+
+.container.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(1.1); /* Zoom out effect */
+}
+
+/* The Pulse/Hexagon wrapper */
+.loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  animation: float 3s ease-in-out infinite;
+}
+
+.hexagonWrapper {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hexagon {
+  font-size: 4rem;
+  color: var(--color-primary);
+  filter: drop-shadow(0 0 20px var(--glow-green));
+  animation: pulse 2s ease-in-out infinite;
+  z-index: 2;
+}
+
+/* Ripples */
+.ripple {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 2px solid var(--color-primary);
+  border-radius: 50%; /* Make it circular glow or hexagonal if creating clip-path */
+  opacity: 0;
+  animation: ripple 2s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+}
+
+.ripple:nth-child(2) {
+  animation-delay: 0.5s;
+}
+
+.text {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  letter-spacing: 0.3em;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  animation: fadeText 2s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 20px var(--glow-green)); }
+  50% { transform: scale(1.1); filter: drop-shadow(0 0 35px var(--glow-green)); }
+}
+
+@keyframes ripple {
+  0% { transform: scale(0.8); opacity: 0.8; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes fadeText {
+  0% { opacity: 0.4; letter-spacing: 0.3em; }
+  100% { opacity: 0.8; letter-spacing: 0.35em; }
+}

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { POPULAR_LANGUAGES, CONTRIBUTION_LABELS } from '@/types';
 import styles from './IssueFilterPanel.module.css';
 
-export type IssuePreset = 'all' | 'recent' | 'good-first' | 'help-wanted' | 'top-repos';
+export type IssuePreset = 'all' | 'recent' | 'good-first' | 'help-wanted' | 'top-repos' | 'tracked';
 export type IssueSortOption = 'created' | 'updated' | 'comments' | 'reactions';
 
 interface IssueFilterPanelProps {
@@ -18,6 +18,9 @@ interface IssueFilterPanelProps {
   onSortChange: (sort: IssueSortOption) => void;
   labelSearch: string;
   onLabelSearchChange: (search: string) => void;
+  // New props for tracked repos
+  trackedRepos?: string[];
+  onManageTracked?: () => void;
 }
 
 const PRESETS: { value: IssuePreset; label: string; icon: string; description: string }[] = [
@@ -25,7 +28,7 @@ const PRESETS: { value: IssuePreset; label: string; icon: string; description: s
   { value: 'recent', label: 'Recent', icon: '🕐', description: 'Newest issues' },
   { value: 'good-first', label: 'Good First', icon: '🌱', description: 'Beginner friendly' },
   { value: 'help-wanted', label: 'Help Wanted', icon: '🙋', description: 'Looking for help' },
-  { value: 'top-repos', label: 'Top Repos', icon: '⭐', description: 'From popular repos' },
+  { value: 'top-repos', label: 'Top 1000', icon: '⭐', description: 'From top 1000 repos' },
 ];
 
 const SORT_OPTIONS: { value: IssueSortOption; label: string }[] = [
@@ -46,6 +49,8 @@ export default function IssueFilterPanel({
   onSortChange,
   labelSearch,
   onLabelSearchChange,
+  trackedRepos = [],
+  onManageTracked,
 }: IssueFilterPanelProps) {
   const [isOpen, setIsOpen] = useState(true);
 
@@ -79,7 +84,28 @@ export default function IssueFilterPanel({
 
       {isOpen && (
         <div className={styles.content}>
-          {/* Preset Filters */}
+          {/* Tracked Repos Section */}
+          {trackedRepos.length > 0 && (
+            <div className={styles.section}>
+              <label className={styles.label}>📌 My Tracked Repos</label>
+              <button
+                className={`${styles.presetBtn} ${selectedPreset === 'tracked' ? styles.presetBtnActive : ''}`}
+                onClick={() => onPresetChange('tracked')}
+              >
+                <span className={styles.presetIcon}>🎯</span>
+                <span className={styles.presetLabel}>
+                  Tracked ({trackedRepos.length})
+                </span>
+              </button>
+              {onManageTracked && (
+                <button className={styles.manageBtn} onClick={onManageTracked}>
+                  Manage Tracked Repos
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Quick Filters (Presets) */}
           <div className={styles.section}>
             <label className={styles.label}>Quick Filters</label>
             <div className={styles.presets}>
@@ -182,3 +208,4 @@ export default function IssueFilterPanel({
     </aside>
   );
 }
+

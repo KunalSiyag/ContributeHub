@@ -239,3 +239,37 @@
     align-items: flex-start;
   }
 }
+
+/* Badges Row */
+.badgesRow {
+  margin-top: var(--space-xs);
+}
+
+/* Momentum Sparkline */
+.momentum {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  width: 100%;
+}
+
+.sparkline {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 24px;
+  padding: 4px 0;
+}
+
+.sparkBar {
+  width: 4px;
+  min-height: 4px;
+  background: linear-gradient(180deg, var(--color-primary), var(--color-accent-blue));
+  border-radius: 2px;
+  transition: height 0.3s ease;
+}
+
+.sparkline:hover .sparkBar {
+  background: linear-gradient(180deg, var(--color-accent-purple), var(--color-primary));
+}
+

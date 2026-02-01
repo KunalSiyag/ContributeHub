@@ -189,52 +189,18 @@ export default function DiscoverPage() {
               onMinStarsChange={setMinStars}
             />
           ) : (
-            <>
-              {/* My Skills Toggle */}
-              {isLoggedIn && hasProfileSkills && (
-                <div className={styles.mySkillsToggle}>
-                  <label className={styles.toggleLabel}>
-                    <input
-                      type="checkbox"
-                      checked={useMySkills}
-                      onChange={(e) => setUseMySkills(e.target.checked)}
-                    />
-                    <span className={styles.toggleSlider}></span>
-                    <span className={styles.toggleText}>
-                      📄 Filter by My Skills
-                    </span>
-                  </label>
-                  {useMySkills && (
-                    <div className={styles.activeSkills}>
-                      {profileSkills.preferred_languages.slice(0, 3).map(skill => (
-                        <span key={skill} className={styles.skillTag}>{skill}</span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-              
-              {!isLoggedIn && (
-                <div className={styles.mySkillsPromo}>
-                  <span>📄</span>
-                  <p>Upload your resume to filter issues by your skills</p>
-                  <Link href="/resume" className={styles.promoLink}>Get Started</Link>
-                </div>
-              )}
-              
-              <IssueFilterPanel
-                selectedPreset={issuePreset}
-                onPresetChange={setIssuePreset}
-                selectedLanguage={issueLanguage}
-                onLanguageChange={setIssueLanguage}
-                selectedLabels={issueLabels}
-                onLabelsChange={setIssueLabels}
-                sortBy={issueSortBy}
-                onSortChange={setIssueSortBy}
-                labelSearch={issueLabelSearch}
-                onLabelSearchChange={setIssueLabelSearch}
-              />
-            </>
+            <IssueFilterPanel
+              selectedPreset={issuePreset}
+              onPresetChange={setIssuePreset}
+              selectedLanguage={issueLanguage}
+              onLanguageChange={setIssueLanguage}
+              selectedLabels={issueLabels}
+              onLabelsChange={setIssueLabels}
+              sortBy={issueSortBy}
+              onSortChange={setIssueSortBy}
+              labelSearch={issueLabelSearch}
+              onLabelSearchChange={setIssueLabelSearch}
+            />
           )}
 
           {/* Results */}

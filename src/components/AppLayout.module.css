@@ -12,10 +12,7 @@
   transition: margin-left var(--transition-base);
 }
 
-/* When sidebar is collapsed */
-:global(.sidebar.collapsed) ~ .mainContent {
-  margin-left: 64px;
-}
+/* Main content handling is now done via inline styles in AppLayout.tsx based on state */
 
 @media (max-width: 1024px) {
   .mainContent {

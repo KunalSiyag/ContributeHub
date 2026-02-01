@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
   const preset = searchParams.get('preset') || ''; // recent, good-first, help-wanted, top-repos
   const perPage = parseInt(searchParams.get('per_page') || '20', 10);
   
-  // Build the search query
+  // Build the search query - explicitly filter for issues only (not PRs)
   const queryParts: string[] = ['is:issue', 'state:open', 'no:assignee'];
 
   // Handle presets
@@ -85,7 +85,17 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await response.json();
-    return NextResponse.json(data);
+    
+    // Filter out any items that are actually pull requests
+    // GitHub's search API sometimes returns PRs even with is:issue
+    // PRs have a 'pull_request' key in the response
+    const filteredItems = data.items?.filter((item: any) => !item.pull_request) || [];
+    
+    return NextResponse.json({
+      ...data,
+      items: filteredItems,
+      total_count: filteredItems.length,
+    });
   } catch (error) {
     console.error('Error fetching issues:', error);
     return NextResponse.json(
@@ -94,3 +104,4 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+

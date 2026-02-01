@@ -1,17 +1,25 @@
 'use client';
 
+import Link from 'next/link';
 import { Issue } from '@/types';
 import { timeAgo, getLabelColor, extractRepoFromIssueUrl } from '@/lib/utils';
+import { calculateIssueBadges } from '@/lib/badges';
+import { BadgeList } from './Badge';
 import IssueActions from './IssueActions';
 import styles from './IssueCard.module.css';
 
 interface IssueCardProps {
   issue: Issue;
+  matchScore?: number;
+  matchReasons?: string[];
 }
 
-export default function IssueCard({ issue }: IssueCardProps) {
+export default function IssueCard({ issue, matchScore, matchReasons }: IssueCardProps) {
   const repoInfo = extractRepoFromIssueUrl(issue.repository_url);
   const repoName = repoInfo ? `${repoInfo.owner}/${repoInfo.repo}` : '';
+  
+  // Calculate badges for this issue
+  const badges = calculateIssueBadges(issue);
 
   // Check if issue has bounty label
   const bountyLabel = issue.labels.find(l => 
@@ -19,38 +27,54 @@ export default function IssueCard({ issue }: IssueCardProps) {
     l.name.includes('💰') ||
     l.name.toLowerCase().includes('reward')
   );
+  
+  // Match score class
+  const getMatchClass = (score: number) => {
+    if (score >= 70) return styles.matchHigh;
+    if (score >= 40) return styles.matchMedium;
+    return styles.matchLow;
+  };
 
   return (
     <article className={styles.card}>
       <div className={styles.header}>
-        <div className={styles.labels}>
-          {bountyLabel && (
-            <span className={styles.bountyBadge}>💰</span>
-          )}
-          {issue.labels.slice(0, 3).map((label) => (
-            <span
-              key={label.id}
-              className={`${styles.label} ${styles[getLabelColor(label.name).replace('label-', '')]}`}
-              style={{
-                backgroundColor: `#${label.color}20`,
-                borderColor: `#${label.color}`,
-              }}
-            >
-              {label.name}
+        <div className={styles.badges}>
+          {/* Match Score */}
+          {matchScore !== undefined && matchScore > 0 && (
+            <span className={`${styles.matchScore} ${getMatchClass(matchScore)}`}>
+              🎯 {matchScore}% match
             </span>
-          ))}
+          )}
+          {/* Gamified badges */}
+          <BadgeList badges={badges} maxBadges={2} />
         </div>
         <span className={styles.number}>#{issue.number}</span>
       </div>
 
-      <a
-        href={issue.html_url}
-        target="_blank"
-        rel="noopener noreferrer"
+      <div className={styles.labels}>
+        {bountyLabel && (
+          <span className={styles.bountyBadge}>💰</span>
+        )}
+        {issue.labels.slice(0, 3).map((label) => (
+          <span
+            key={label.id}
+            className={`${styles.label} ${styles[getLabelColor(label.name).replace('label-', '')]}`}
+            style={{
+              backgroundColor: `#${label.color}20`,
+              borderColor: `#${label.color}`,
+            }}
+          >
+            {label.name}
+          </span>
+        ))}
+      </div>
+
+      <Link
+        href={`/issues/${repoInfo?.owner}/${repoInfo?.repo}/${issue.number}`}
         className={styles.title}
       >
         {issue.title}
-      </a>
+      </Link>
 
       {repoName && (
         <a
@@ -61,6 +85,15 @@ export default function IssueCard({ issue }: IssueCardProps) {
         >
           📁 {repoName}
         </a>
+      )}
+      
+      {/* Match reasons */}
+      {matchReasons && matchReasons.length > 0 && (
+        <div className={styles.matchReasons}>
+          {matchReasons.slice(0, 3).map((reason, i) => (
+            <span key={i} className={styles.reason}>✓ {reason}</span>
+          ))}
+        </div>
       )}
 
       <div className={styles.footer}>
@@ -106,4 +139,5 @@ export default function IssueCard({ issue }: IssueCardProps) {
     </article>
   );
 }
+
 

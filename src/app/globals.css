@@ -567,6 +567,21 @@ a:hover {
   transition: background 0.5s ease;
 }
 
+/* Hero-like Atmospheric Glow - Global */
+.photogenic-wrapper::before {
+  content: '';
+  position: absolute;
+  top: -20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120%;
+  height: 80%;
+  background: radial-gradient(ellipse at center, rgba(139, 92, 246, 0.15) 0%, rgba(59, 130, 246, 0.05) 40%, transparent 70%);
+  z-index: 0;
+  pointer-events: none;
+  filter: blur(60px);
+}
+
 .blur-blob {
   position: absolute;
   filter: blur(80px); /* Heavy blur for soft effect */
@@ -581,7 +596,7 @@ a:hover {
   width: 50vw;
   height: 50vw;
   background: var(--color-primary);
-  opacity: 0.15;
+  opacity: 0.08; /* Reduced from 0.15 to blend with hero gradient */
 }
 
 .blob-2 {

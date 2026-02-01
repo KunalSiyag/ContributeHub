@@ -117,7 +117,17 @@ export async function searchIssues(
     throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
   }
 
-  return response.json();
+  const data = await response.json();
+  
+  // Filter out pull requests - GitHub's search API can return PRs even with is:issue
+  // PRs have a 'pull_request' key in the response object
+  const filteredItems = data.items?.filter((item: any) => !item.pull_request) || [];
+  
+  return {
+    ...data,
+    items: filteredItems,
+    total_count: filteredItems.length,
+  };
 }
 
 // Get a single repository by owner and name

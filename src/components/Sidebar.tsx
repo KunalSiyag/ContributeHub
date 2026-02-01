@@ -26,14 +26,31 @@ const dashboardNav: NavItem[] = [
   { label: 'All Issues', href: '/dashboard', icon: '📋', requiresAuth: true },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  collapsed?: boolean;
+  onToggle?: (collapsed: boolean) => void;
+}
+
+export default function Sidebar({ collapsed: propsCollapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const { user, signInWithGitHub, signOut, loading } = useAuth();
-  const [collapsed, setCollapsed] = useState(false);
+  const [internalCollapsed, setInternalCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Use props if provided, otherwise internal state
+  const isControlled = propsCollapsed !== undefined;
+  const collapsed = isControlled ? propsCollapsed : internalCollapsed;
+
+  const handleToggle = () => {
+    if (isControlled && onToggle) {
+      onToggle(!collapsed);
+    } else {
+      setInternalCollapsed(!collapsed);
+    }
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -123,7 +140,7 @@ export default function Sidebar() {
           <button 
             type="button"
             className={styles.collapseBtn}
-            onClick={() => setCollapsed(!collapsed)}
+            onClick={handleToggle}
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             {collapsed ? '→' : '←'}
@@ -138,13 +155,25 @@ export default function Sidebar() {
             {generalNav.map(renderNavItem)}
           </div>
 
-          {/* Dashboard (Auth Required) */}
-          {mounted && user && (
-            <div className={styles.navSection}>
-              {!collapsed && <span className={styles.sectionLabel}>MY DASHBOARD</span>}
-              {dashboardNav.map(renderNavItem)}
-            </div>
-          )}
+          {/* Dashboard (Always show, disabled if not logged in) */}
+          <div className={styles.navSection}>
+            {!collapsed && <span className={styles.sectionLabel}>MY DASHBOARD</span>}
+            {mounted && user ? (
+              dashboardNav.map(renderNavItem)
+            ) : (
+              dashboardNav.map((item) => (
+                <div
+                  key={item.href}
+                  className={`${styles.navItem} ${styles.disabled}`}
+                  title="Login to access your dashboard"
+                >
+                  <span className={styles.navIcon}>{item.icon}</span>
+                  {!collapsed && <span className={styles.navLabel}>{item.label}</span>}
+                  {!collapsed && <span className={styles.lockIcon}>🔒</span>}
+                </div>
+              ))
+            )}
+          </div>
         </nav>
 
         {/* Theme Toggle & User Section */}
@@ -173,9 +202,13 @@ export default function Sidebar() {
           </button>
 
           {!mounted ? (
-            <div className={styles.loading}>...</div>
+            <div className={styles.loading}>
+              <span style={{ fontSize: '1.5rem', animation: 'spin 1s linear infinite' }}>⬡</span>
+            </div>
           ) : loading ? (
-            <div className={styles.loading}>...</div>
+            <div className={styles.loading}>
+              <span style={{ fontSize: '1.5rem', animation: 'spin 1s linear infinite' }}>⬡</span>
+            </div>
           ) : user ? (
             <div className={styles.userInfo}>
               <img 

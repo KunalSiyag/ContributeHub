@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import { AuthProvider } from "@/contexts/AuthContext";
 import AppLayout from "@/components/AppLayout";
 import SmoothScroll from "@/components/SmoothScroll";
+import GlobalLoader from "@/components/GlobalLoader";
 import "./globals.css";
 
 const inter = Inter({
@@ -44,6 +45,7 @@ export default function RootLayout({
           <div className="blur-blob blob-2"></div>
           <div className="blur-blob blob-3"></div>
         </div>
+        <GlobalLoader />
         <AuthProvider>
           <SmoothScroll>
             <AppLayout>

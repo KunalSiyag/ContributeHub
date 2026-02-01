@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Sidebar from './Sidebar';
 import Header from './Header';
@@ -12,6 +13,7 @@ interface AppLayoutProps {
 
 export default function AppLayout({ children }: AppLayoutProps) {
   const pathname = usePathname();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
   // Homepage uses top nav only, other pages use sidebar
   const isHomepage = pathname === '/';
@@ -30,16 +32,28 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <div className={styles.appLayout}>
-      {/* Global Photogenic Background */}
+      {/* Global Photogenic Background - Fixed position, so it doesn't affect flow */}
       <div className="photogenic-wrapper">
         <div className="blur-blob blob-1"></div>
         <div className="blur-blob blob-2"></div>
         <div className="blur-blob blob-3"></div>
       </div>
       
-      <Sidebar />
-      <div className={styles.mainContent} style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-        <div style={{ flex: 1 }}>
+      <Sidebar 
+        collapsed={sidebarCollapsed} 
+        onToggle={setSidebarCollapsed} 
+      />
+      
+      <div 
+        className={styles.mainContent} 
+        style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          minHeight: '100vh',
+          marginLeft: sidebarCollapsed ? '64px' : '240px' 
+        }}
+      >
+        <div style={{ flex: 1, width: '100%' }}>
           {children}
         </div>
         <Footer />
