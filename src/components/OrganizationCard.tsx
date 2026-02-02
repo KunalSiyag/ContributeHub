@@ -24,12 +24,16 @@ export default function OrganizationCard({ org }: OrganizationCardProps) {
   // Format participation years
   const formatYears = (years?: number[]): string | null => {
     if (!years || years.length === 0) return null;
-    if (years.length === 1) return `${years[0]}`;
-    // Show range or individual years
-    const sorted = [...years].sort((a, b) => a - b);
-    if (sorted.length > 2) {
-      return `${sorted[0]}-${sorted[sorted.length - 1]}`;
+    // Show individual years sorted descending
+    const sorted = [...years].sort((a, b) => b - a);
+    
+    const limit = 4;
+    if (sorted.length > limit) {
+      const displayYears = sorted.slice(0, limit);
+      const remaining = sorted.length - limit;
+      return `${displayYears.join(', ')} +${remaining} more`;
     }
+    
     return sorted.join(', ');
   };
 

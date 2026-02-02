@@ -1,14 +1,17 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Repository, Issue, RepositoryFilters } from '@/types';
 import { getStoredPreferences, defaultPreferences } from '@/lib/utils';
 import { calculateMatchScore } from '@/lib/github';
-import { GSSOC_ORGANIZATIONS } from '@/lib/events';
+import { GSSOC_ORGANIZATIONS, getAllParticipationYears, getOrganizationsByYears } from '@/lib/events';
 import { useProfileSkills } from '@/hooks/useProfileSkills';
 import ProjectCard from '@/components/ProjectCard';
+import OrganizationCard from '@/components/OrganizationCard';
 import IssueCard from '@/components/IssueCard';
 import FilterPanel from '@/components/FilterPanel';
+import OrganizationFilterPanel from '@/components/OrganizationFilterPanel';
 import IssueFilterPanel, { IssuePreset, IssueSortOption } from '@/components/IssueFilterPanel';
 import SearchBar from '@/components/SearchBar';
 import Link from 'next/link';
@@ -18,10 +21,11 @@ import styles from './page.module.css';
 const getParticipationTags = (repoFullName: string) => {
   const org = GSSOC_ORGANIZATIONS.find(o => o.slug === repoFullName);
   if (!org || !org.participationYears) return [];
+  // Use the new simplified format logic if needed or keep using sort
   return org.participationYears.sort((a, b) => b - a).map(year => `GSSoC ${year}`);
 };
 
-type TabType = 'projects' | 'issues';
+type TabType = 'projects' | 'issues' | 'organizations';
 
 export default function DiscoverPage() {
   const [activeTab, setActiveTab] = useState<TabType>('projects');
@@ -42,6 +46,12 @@ export default function DiscoverPage() {
   const [issueLabels, setIssueLabels] = useState<string[]>([]);
   const [issueSortBy, setIssueSortBy] = useState<IssueSortOption>('created');
   const [issueLabelSearch, setIssueLabelSearch] = useState('');
+  
+  // Organization Filters
+  const [orgYears, setOrgYears] = useState<number[]>([]);
+  const [orgMatchAll, setOrgMatchAll] = useState(false);
+  const [orgSortBy, setOrgSortBy] = useState('relevance');
+  const availableOrgYears = useMemo(() => getAllParticipationYears(), []);
   
   // User preferences for match scoring
   const [userSkills, setUserSkills] = useState<string[]>([]);
@@ -145,6 +155,35 @@ export default function DiscoverPage() {
     matchScore: calculateMatchScore(repo, userSkills, userInterests),
   }));
 
+  // Filter and Sort Organizations Client-Side
+  const filteredOrgs = useMemo(() => {
+    let orgs = getOrganizationsByYears(orgYears, orgMatchAll);
+    
+    // Text search
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      orgs = orgs.filter(org => 
+        org.name.toLowerCase().includes(q) || 
+        org.description.toLowerCase().includes(q) ||
+        org.topics.some(t => t.toLowerCase().includes(q))
+      );
+    }
+    
+    // Sort
+    return [...orgs].sort((a, b) => {
+      switch (orgSortBy) {
+        case 'years-desc':
+          return (b.participationYears?.length || 0) - (a.participationYears?.length || 0);
+        case 'years-asc':
+          return (a.participationYears?.length || 0) - (b.participationYears?.length || 0);
+        case 'name-asc':
+          return a.name.localeCompare(b.name);
+        default: // relevance - keep original order or other
+          return 0;
+      }
+    });
+  }, [orgYears, orgMatchAll, orgSortBy, searchQuery]);
+
   return (
     <div className={styles.page}>
       <div className={styles.container}>
@@ -174,6 +213,12 @@ export default function DiscoverPage() {
           >
             ✨ Issues
           </button>
+          <button
+            className={`${styles.tab} ${activeTab === 'organizations' ? styles.tabActive : ''}`}
+            onClick={() => setActiveTab('organizations')}
+          >
+            🏢 Organizations
+          </button>
         </div>
 
         {/* Main Content */}
@@ -188,7 +233,7 @@ export default function DiscoverPage() {
               minStars={minStars}
               onMinStarsChange={setMinStars}
             />
-          ) : (
+          ) : activeTab === 'issues' ? (
             <IssueFilterPanel
               selectedPreset={issuePreset}
               onPresetChange={setIssuePreset}
@@ -200,6 +245,16 @@ export default function DiscoverPage() {
               onSortChange={setIssueSortBy}
               labelSearch={issueLabelSearch}
               onLabelSearchChange={setIssueLabelSearch}
+            />
+          ) : (
+            <OrganizationFilterPanel
+              years={availableOrgYears}
+              selectedYears={orgYears}
+              onYearsChange={setOrgYears}
+              matchAll={orgMatchAll}
+              onMatchAllChange={setOrgMatchAll}
+              sortBy={orgSortBy}
+              onSortChange={setOrgSortBy}
             />
           )}
 
@@ -243,6 +298,24 @@ export default function DiscoverPage() {
                     ))}
                   </div>
                 )}
+              </>
+            )}
+
+            {!loading && !error && activeTab === 'organizations' && (
+              <>
+                 {filteredOrgs.length === 0 ? (
+                  <div className={styles.empty}>
+                    <span className={styles.emptyIcon}>📭</span>
+                    <h3>No organizations found</h3>
+                    <p>Try adjusting your filters</p>
+                  </div>
+                 ) : (
+                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px', width: '100%' }}>
+                     {filteredOrgs.map((org) => (
+                       <OrganizationCard key={org.slug} org={org} />
+                     ))}
+                   </div>
+                 )}
               </>
             )}
 

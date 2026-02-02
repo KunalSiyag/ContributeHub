@@ -327,6 +327,7 @@ export const GSSOC_ORGANIZATIONS: EventOrganization[] = [
     language: 'Python',
     topics: ['machine-learning', 'deep-learning', 'ai', 'gsoc'],
     eventLabel: 'gsoc',
+    participationYears: [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
   },
   {
     name: 'Kubernetes',
@@ -337,6 +338,7 @@ export const GSSOC_ORGANIZATIONS: EventOrganization[] = [
     language: 'Go',
     topics: ['containers', 'orchestration', 'cloud-native', 'gsoc', 'lfx'],
     eventLabel: 'gsoc',
+    participationYears: [2018, 2019, 2020, 2021, 2022, 2023, 2024],
   },
   {
     name: 'Apache Kafka',
@@ -347,6 +349,7 @@ export const GSSOC_ORGANIZATIONS: EventOrganization[] = [
     language: 'Java',
     topics: ['streaming', 'distributed', 'messaging', 'gsoc'],
     eventLabel: 'gsoc',
+    participationYears: [2018, 2019, 2020, 2021, 2022, 2023, 2024],
   },
   {
     name: 'Discourse',
@@ -357,6 +360,7 @@ export const GSSOC_ORGANIZATIONS: EventOrganization[] = [
     language: 'Ruby',
     topics: ['ruby', 'rails', 'gsoc'],
     eventLabel: 'gsoc',
+    participationYears: [2019, 2020, 2021, 2022, 2023, 2024],
   },
   {
     name: 'Blender',
@@ -367,6 +371,7 @@ export const GSSOC_ORGANIZATIONS: EventOrganization[] = [
     language: 'C',
     topics: ['3d', 'graphics', 'animation', 'gsoc'],
     eventLabel: 'gsoc',
+    participationYears: [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
   },
   {
     name: 'FFmpeg',
@@ -377,6 +382,7 @@ export const GSSOC_ORGANIZATIONS: EventOrganization[] = [
     language: 'C',
     topics: ['video', 'audio', 'multimedia', 'gsoc'],
     eventLabel: 'gsoc',
+    participationYears: [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
   },
   {
     name: 'Apache Beam',
@@ -387,6 +393,7 @@ export const GSSOC_ORGANIZATIONS: EventOrganization[] = [
     language: 'Java',
     topics: ['big-data', 'stream-processing', 'gsoc'],
     eventLabel: 'gsoc',
+    participationYears: [2018, 2019, 2020, 2021, 2022, 2023, 2024],
   },
   {
     name: 'Jenkins',
@@ -397,6 +404,7 @@ export const GSSOC_ORGANIZATIONS: EventOrganization[] = [
     language: 'Java',
     topics: ['ci-cd', 'automation', 'devops', 'gsoc'],
     eventLabel: 'gsoc',
+    participationYears: [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
   },
   {
     name: 'LibreOffice',
@@ -407,6 +415,7 @@ export const GSSOC_ORGANIZATIONS: EventOrganization[] = [
     language: 'C++',
     topics: ['office', 'productivity', 'gsoc'],
     eventLabel: 'gsoc',
+    participationYears: [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
   },
   {
     name: 'GNOME',
@@ -417,6 +426,7 @@ export const GSSOC_ORGANIZATIONS: EventOrganization[] = [
     language: 'JavaScript',
     topics: ['linux', 'desktop', 'gsoc'],
     eventLabel: 'gsoc',
+    participationYears: [2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
   },
 
   // Hacktoberfest Projects
@@ -429,6 +439,7 @@ export const GSSOC_ORGANIZATIONS: EventOrganization[] = [
     language: 'TypeScript',
     topics: ['education', 'nodejs', 'react', 'hacktoberfest'],
     eventLabel: 'hacktoberfest',
+    participationYears: [2018, 2019, 2020, 2021, 2022, 2023, 2024],
   },
   {
     name: 'Godot Engine',
@@ -439,6 +450,7 @@ export const GSSOC_ORGANIZATIONS: EventOrganization[] = [
     language: 'C++',
     topics: ['game-engine', 'games', '3d', 'hacktoberfest'],
     eventLabel: 'hacktoberfest',
+    participationYears: [2019, 2020, 2021, 2022, 2023, 2024],
   },
   {
     name: 'Supabase',
@@ -449,6 +461,7 @@ export const GSSOC_ORGANIZATIONS: EventOrganization[] = [
     language: 'TypeScript',
     topics: ['database', 'postgres', 'auth', 'hacktoberfest'],
     eventLabel: 'hacktoberfest',
+    participationYears: [2021, 2022, 2023, 2024],
   },
   {
     name: 'Next.js',
@@ -459,6 +472,7 @@ export const GSSOC_ORGANIZATIONS: EventOrganization[] = [
     language: 'JavaScript',
     topics: ['react', 'framework', 'vercel', 'hacktoberfest'],
     eventLabel: 'hacktoberfest',
+    participationYears: [2019, 2020, 2021, 2022, 2023, 2024],
   },
   {
     name: 'Appwrite',
@@ -469,6 +483,7 @@ export const GSSOC_ORGANIZATIONS: EventOrganization[] = [
     language: 'TypeScript',
     topics: ['backend', 'baas', 'docker', 'hacktoberfest'],
     eventLabel: 'hacktoberfest',
+    participationYears: [2021, 2022, 2023, 2024],
   },
   {
     name: 'Mattermost',
@@ -479,6 +494,7 @@ export const GSSOC_ORGANIZATIONS: EventOrganization[] = [
     language: 'Go',
     topics: ['chat', 'collaboration', 'devops', 'hacktoberfest'],
     eventLabel: 'hacktoberfest',
+    participationYears: [2019, 2020, 2021, 2022, 2023, 2024],
   },
   {
     name: 'Grafana',
@@ -489,6 +505,7 @@ export const GSSOC_ORGANIZATIONS: EventOrganization[] = [
     language: 'TypeScript',
     topics: ['monitoring', 'visualization', 'hacktoberfest'],
     eventLabel: 'hacktoberfest',
+    participationYears: [2019, 2020, 2021, 2022, 2023, 2024],
   },
   {
     name: 'Directus',
@@ -499,6 +516,7 @@ export const GSSOC_ORGANIZATIONS: EventOrganization[] = [
     language: 'TypeScript',
     topics: ['headless-cms', 'api', 'hacktoberfest'],
     eventLabel: 'hacktoberfest',
+    participationYears: [2020, 2021, 2022, 2023, 2024],
   },
   {
     name: 'Strapi',
@@ -509,6 +527,7 @@ export const GSSOC_ORGANIZATIONS: EventOrganization[] = [
     language: 'JavaScript',
     topics: ['cms', 'nodejs', 'hacktoberfest'],
     eventLabel: 'hacktoberfest',
+    participationYears: [2019, 2020, 2021, 2022, 2023, 2024],
   },
 
   // LFX Mentorship Projects
@@ -521,6 +540,7 @@ export const GSSOC_ORGANIZATIONS: EventOrganization[] = [
     language: 'C++',
     topics: ['proxy', 'service-mesh', 'cncf', 'lfx'],
     eventLabel: 'lfx',
+    participationYears: [2021, 2022, 2023, 2024],
   },
   {
     name: 'CNCF Prometheus',
@@ -531,6 +551,7 @@ export const GSSOC_ORGANIZATIONS: EventOrganization[] = [
     language: 'Go',
     topics: ['monitoring', 'metrics', 'cncf', 'lfx'],
     eventLabel: 'lfx',
+    participationYears: [2021, 2022, 2023, 2024],
   },
   {
     name: 'CNCF Jaeger',
@@ -541,6 +562,7 @@ export const GSSOC_ORGANIZATIONS: EventOrganization[] = [
     language: 'Go',
     topics: ['tracing', 'observability', 'cncf', 'lfx'],
     eventLabel: 'lfx',
+    participationYears: [2021, 2022, 2023, 2024],
   },
   {
     name: 'CNCF Fluentd',
@@ -551,6 +573,7 @@ export const GSSOC_ORGANIZATIONS: EventOrganization[] = [
     language: 'Ruby',
     topics: ['logging', 'cncf', 'lfx'],
     eventLabel: 'lfx',
+    participationYears: [2021, 2022, 2023, 2024],
   },
   {
     name: 'CNCF Vitess',
@@ -561,12 +584,39 @@ export const GSSOC_ORGANIZATIONS: EventOrganization[] = [
     language: 'Go',
     topics: ['mysql', 'database', 'cncf', 'lfx'],
     eventLabel: 'lfx',
+    participationYears: [2021, 2022, 2023, 2024],
   },
 ];
 
 // Get organizations by event label
 export function getOrganizationsForEvent(eventLabel: string): EventOrganization[] {
   return GSSOC_ORGANIZATIONS.filter(org => org.topics.includes(eventLabel) || org.eventLabel === eventLabel);
+}
+
+// Get all unique participation years across all organizations
+export function getAllParticipationYears(): number[] {
+  const years = new Set<number>();
+  GSSOC_ORGANIZATIONS.forEach(org => {
+    org.participationYears?.forEach(year => years.add(year));
+  });
+  return Array.from(years).sort((a, b) => b - a);
+}
+
+// Filter organizations by participation years
+export function getOrganizationsByYears(years: number[], matchAll: boolean = false): EventOrganization[] {
+  if (years.length === 0) return GSSOC_ORGANIZATIONS;
+  
+  return GSSOC_ORGANIZATIONS.filter(org => {
+    if (!org.participationYears) return false;
+    
+    if (matchAll) {
+      // Must have ALL selected years
+      return years.every(y => org.participationYears!.includes(y));
+    } else {
+      // Must have ANY of the selected years
+      return years.some(y => org.participationYears!.includes(y));
+    }
+  });
 }
 
 
