@@ -1,112 +1,239 @@
-.page {
-  padding: var(--space-lg);
-  min-height: 100vh;
-}
-
-.container {
-  max-width: var(--max-content-width);
-  margin: 0 auto;
-}
-
-/* Header */
-.header {
-  margin-bottom: var(--space-2xl);
-}
-
-.titleArea {
-  max-width: 700px;
-}
-
-.label {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--color-accent-orange);
-  margin-bottom: var(--space-sm);
-  display: block;
-}
-
-.titleArea h1 {
-  font-size: 2.5rem;
-  font-weight: 800;
-  margin-bottom: var(--space-md);
-  color: var(--color-text-primary);
-}
-
-.titleArea p {
-  font-size: 1.125rem;
-  color: var(--color-text-secondary);
-  line-height: 1.6;
-}
-
-/* Sections */
-.section {
-  margin-bottom: var(--space-3xl);
-}
-
-.sectionTitle {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--color-text-primary);
-  margin-bottom: var(--space-lg);
+.sections {
   display: flex;
-  align-items: center;
-  gap: var(--space-sm);
+  flex-direction: column;
+  gap: var(--s-12);
 }
 
-.activeIndicator {
-  color: var(--color-accent-green);
-  font-size: 0.75rem;
-  animation: pulse 2s infinite;
+/* ---------- Next deadlines ---------- */
+
+.deadlineItem + .deadlineItem {
+  border-top: 1px solid var(--line);
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
-}
-
-/* Grid */
-.grid {
+.deadline {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-  gap: var(--space-lg);
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--s-4);
+  padding: var(--s-3) var(--s-4);
+  transition: background-color var(--dur-fast) var(--ease-out);
 }
 
-/* Empty State */
-.empty {
+.deadline:hover {
+  background: var(--bg);
+}
+
+.deadline:focus-visible {
+  outline-offset: -2px;
+  border-radius: var(--r);
+}
+
+.dateBlock {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--space-3xl);
-  text-align: center;
-  background: var(--color-bg-secondary);
-  border-radius: var(--radius-xl);
+  gap: 3px;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--surface);
+  font-family: var(--font-mono);
+  line-height: 1;
 }
 
-.emptyIcon {
-  font-size: 4rem;
-  margin-bottom: var(--space-md);
-  opacity: 0.5;
+.dateMonth {
+  color: var(--fg-3);
+  font-size: var(--text-eyebrow);
+  font-weight: 500;
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
 }
 
-.empty h3 {
-  margin-bottom: var(--space-sm);
+.dateDay {
+  color: var(--fg);
+  font-size: var(--text-ui);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
 }
 
-.empty p {
-  color: var(--color-text-tertiary);
+.dateToday .dateDay {
+  color: var(--accent);
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .titleArea h1 {
-    font-size: 2rem;
+.deadlineText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.deadlineName {
+  overflow: hidden;
+  color: var(--fg);
+  font-size: var(--text-ui);
+  font-weight: 500;
+  line-height: 1.43;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.deadlineLabel {
+  color: var(--fg-3);
+  font-size: var(--text-caption);
+  line-height: 1.4;
+}
+
+.deadlineCountdown {
+  min-width: 8ch;
+  color: var(--fg);
+  font-family: var(--font-mono);
+  font-size: var(--text-ui);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.deadlineChevron {
+  color: var(--fg-4);
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+
+.deadline:hover .deadlineChevron {
+  color: var(--fg);
+  transform: translateX(2px);
+}
+
+@media (max-width: 640px) {
+  .deadline {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: var(--s-3);
+    padding: var(--s-3);
   }
 
-  .grid {
+  .deadlineChevron {
+    display: none;
+  }
+}
+
+/* ===== Next deadlines: one featured card beside the list ===== */
+
+.deadlinesGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+  gap: var(--s-4);
+  align-items: stretch;
+}
+
+.featured {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  min-height: 220px;
+  padding: var(--s-6);
+  border-radius: var(--r-lg);
+  background:
+    radial-gradient(120% 90% at 100% 0%, var(--accent-soft), transparent 60%),
+    var(--surface);
+}
+
+.featuredTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-2);
+}
+
+.official {
+  padding: 1px 7px;
+  border-radius: var(--r-full);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: var(--text-meta);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.featuredName {
+  margin-top: var(--s-2);
+  color: var(--fg);
+  font-size: var(--text-sub);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.featuredLabel {
+  color: var(--fg-3);
+  font-size: var(--text-caption);
+}
+
+.featuredCountdown.featuredCountdown {
+  margin-top: auto;
+  color: var(--fg);
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 860px) {
+  .deadlinesGrid {
     grid-template-columns: 1fr;
   }
+
+  .featured {
+    min-height: 180px;
+  }
+}
+
+/* ===== Program directory ===== */
+
+.directory {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+
+.directoryTools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.directorySearch {
+  flex: 1 1 260px;
+  max-width: 420px;
+}
+
+.directoryFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+.directoryTracked {
+  color: var(--accent);
+  font-size: var(--text-caption);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.directoryTracked:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.directoryNote {
+  color: var(--fg-3);
+  font-size: var(--text-caption);
+  line-height: 1.6;
+}
+
+.directoryNote a {
+  color: var(--fg-2);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }

@@ -1,83 +1,141 @@
-// Gemini AI Integration for Enhanced Resume Analysis
-// Used for optional deep analysis when user requests it
+import 'server-only';
+import type { ResumeAnalysisResult } from './resume';
 
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import { ResumeAnalysisResult } from './resume';
+const API = 'https://generativelanguage.googleapis.com/v1beta/models';
 
-const GEMINI_API_KEY = process.env.GOOGLE_GEMINI_API_KEY;
+/** Override with GEMINI_MODEL; defaults to Google's current fast, low-cost model. */
+export const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
 
-const ANALYSIS_PROMPT = `Analyze this resume text and extract the following information in JSON format:
-
-{
-  "skills": ["array of programming languages found"],
-  "technologies": ["array of frameworks, tools, and platforms"],
-  "interests": ["array from: web, mobile, machine-learning, devops, security, blockchain, database, api, frontend, backend, testing, documentation, cli"],
-  "experienceLevel": "one of: beginner, intermediate, advanced",
-  "summary": "one sentence about the candidate's focus area"
+export function isAIConfigured(): boolean {
+  return Boolean(process.env.GOOGLE_GEMINI_API_KEY);
 }
 
-Rules:
-- Only include skills/technologies explicitly mentioned
-- For experienceLevel: beginner = 0-1 years or student, intermediate = 2-5 years, advanced = 5+ years or senior titles
-- Keep arrays concise, max 15 items each
-- Be strict: only extract what's clearly stated
-
-Resume text:
-`;
+/**
+ * True when the key is set AND the configured model answers. The probe is a
+ * cheap model lookup cached for an hour, so an invalid key or retired model
+ * hides AI features instead of offering buttons that can only fail.
+ */
+export async function isAIAvailable(): Promise<boolean> {
+  const key = process.env.GOOGLE_GEMINI_API_KEY;
+  if (!key) return false;
+  try {
+    const response = await fetch(`${API}/${encodeURIComponent(GEMINI_MODEL)}`, {
+      headers: { 'x-goog-api-key': key },
+      next: { revalidate: 3600 },
+      signal: AbortSignal.timeout(5000),
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
 
 /**
- * Use Gemini AI for deeper resume analysis
- * Returns enhanced skill extraction with context understanding
+ * One JSON-mode generateContent call. Returns null on any failure (missing
+ * key, invalid key, retired model, timeout, malformed output) so callers can
+ * say "AI unavailable" instead of inventing a result.
  */
-export async function analyzeResumeWithAI(resumeText: string): Promise<Partial<ResumeAnalysisResult>> {
-  if (!GEMINI_API_KEY) {
-    console.warn('Gemini API key not configured, skipping AI analysis');
-    return {};
-  }
+export async function generateJSON<T>(prompt: string, { maxOutputTokens = 1024, timeoutMs = 20000 } = {}): Promise<T | null> {
+  const key = process.env.GOOGLE_GEMINI_API_KEY;
+  if (!key) return null;
 
   try {
-    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite' });
+    const response = await fetch(`${API}/${encodeURIComponent(GEMINI_MODEL)}:generateContent`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+      body: JSON.stringify({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.2, maxOutputTokens, responseMimeType: 'application/json' },
+      }),
+      signal: AbortSignal.timeout(timeoutMs),
+      cache: 'no-store',
+    });
 
-    // Truncate very long resumes to avoid token limits
-    const truncatedText = resumeText.slice(0, 8000);
-    
-    const result = await model.generateContent(ANALYSIS_PROMPT + truncatedText);
-    const response = await result.response;
-    const text = response.text();
-    
-    // Extract JSON from response (handle markdown code blocks)
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      console.error('No JSON found in Gemini response');
-      return {};
+    if (!response.ok) {
+      console.warn(`Gemini request failed (${response.status}) for model ${GEMINI_MODEL}`);
+      return null;
     }
 
-    const parsed = JSON.parse(jsonMatch[0]);
-    
-    return {
-      skills: Array.isArray(parsed.skills) ? parsed.skills : [],
-      technologies: Array.isArray(parsed.technologies) ? parsed.technologies : [],
-      interests: Array.isArray(parsed.interests) ? parsed.interests : [],
-      experienceLevel: validateExperienceLevel(parsed.experienceLevel),
-      confidence: 85, // AI extraction has high confidence
-    };
-  } catch (error) {
-    console.error('Gemini AI analysis failed:', error);
-    return {};
+    const data = await response.json();
+    const text: string = (data?.candidates?.[0]?.content?.parts ?? [])
+      .map((part: { text?: string }) => part.text ?? '')
+      .join('')
+      .trim();
+    if (!text) return null;
+    const json = text.match(/\{[\s\S]*\}/)?.[0] ?? text;
+    return JSON.parse(json) as T;
+  } catch (err) {
+    console.warn('Gemini request error:', err instanceof Error ? err.message : err);
+    return null;
   }
 }
 
-function validateExperienceLevel(level: string): 'beginner' | 'intermediate' | 'advanced' {
-  if (level === 'beginner' || level === 'intermediate' || level === 'advanced') {
-    return level;
-  }
-  return 'beginner';
+export interface ChatTurn {
+  role: 'user' | 'model';
+  text: string;
 }
 
 /**
- * Check if Gemini API is configured and available
+ * A plain-text (Markdown) reply to a conversation, steered by a system
+ * instruction. Returns null on any failure, like generateJSON.
  */
-export function isAIAvailable(): boolean {
-  return !!GEMINI_API_KEY;
+export async function generateText(
+  system: string,
+  turns: ChatTurn[],
+  { maxOutputTokens = 1200, timeoutMs = 30000, temperature = 0.3 } = {}
+): Promise<string | null> {
+  const key = process.env.GOOGLE_GEMINI_API_KEY;
+  if (!key || turns.length === 0) return null;
+
+  try {
+    const response = await fetch(`${API}/${encodeURIComponent(GEMINI_MODEL)}:generateContent`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: system }] },
+        contents: turns.map(turn => ({ role: turn.role, parts: [{ text: turn.text }] })),
+        generationConfig: { temperature, maxOutputTokens },
+      }),
+      signal: AbortSignal.timeout(timeoutMs),
+      cache: 'no-store',
+    });
+    if (!response.ok) {
+      console.warn(`Gemini request failed (${response.status}) for model ${GEMINI_MODEL}`);
+      return null;
+    }
+    const data = await response.json();
+    const text: string = (data?.candidates?.[0]?.content?.parts ?? [])
+      .map((part: { text?: string }) => part.text ?? '')
+      .join('')
+      .trim();
+    return text || null;
+  } catch (err) {
+    console.warn('Gemini request error:', err instanceof Error ? err.message : err);
+    return null;
+  }
+}
+
+const strings = (value: unknown, max = 15) =>
+  Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string').map(v => v.trim()).filter(Boolean).slice(0, max) : [];
+
+export async function analyzeResumeWithAI(resumeText: string): Promise<Partial<ResumeAnalysisResult> | null> {
+  const prompt = `Extract skills from this resume. Respond with JSON only:
+{"skills": string[] (programming languages only), "technologies": string[] (frameworks, libraries, tools, platforms),
+ "interests": string[] (choose from: web, backend, mobile, devops, ml, data, security, docs, tooling, games, web3),
+ "experienceLevel": "beginner" | "intermediate" | "advanced"}
+Rules: only include items explicitly present in the resume. beginner = student or under 2 years; intermediate = 2-5 years; advanced = 5+ years or senior/staff/lead titles. Max 15 items per list.
+
+Resume:
+${resumeText.slice(0, 8000)}`;
+
+  const parsed = await generateJSON<Record<string, unknown>>(prompt, { maxOutputTokens: 800 });
+  if (!parsed) return null;
+
+  const level = parsed.experienceLevel;
+  return {
+    skills: strings(parsed.skills),
+    technologies: strings(parsed.technologies),
+    interests: strings(parsed.interests, 6),
+    experienceLevel: level === 'intermediate' || level === 'advanced' ? level : 'beginner',
+  };
 }

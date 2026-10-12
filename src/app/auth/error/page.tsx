@@ -1,121 +1,55 @@
-'use client';
-
-import { useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
+import { Notice } from '@/components/ui/primitives';
+import { buttonClass } from '@/components/ui/Button';
+import RetrySignIn from './RetrySignIn';
+import styles from './page.module.css';
 
-function AuthErrorContent() {
-  const searchParams = useSearchParams();
-  const error = searchParams.get('error') || 'An authentication error occurred';
+export const metadata: Metadata = {
+  title: 'Sign-in problem',
+  robots: { index: false },
+};
 
-  // Function to clear all Supabase cookies and retry login
-  const handleRetryLogin = () => {
-    // Clear ALL Supabase-related cookies
-    const cookies = document.cookie.split(';');
-    for (const cookie of cookies) {
-      const cookieName = cookie.split('=')[0].trim();
-      if (cookieName.startsWith('sb-') || cookieName.includes('supabase') || cookieName.includes('pkce')) {
-        document.cookie = `${cookieName}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
-        document.cookie = `${cookieName}=; path=/; domain=${window.location.hostname}; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
-      }
-    }
-    // Redirect to home and let user click login again
-    window.location.href = '/';
-  };
+const KNOWN_ERRORS: Record<string, string> = {
+  missing_code: 'GitHub sent you back without an authorization code. This usually means the sign-in was cancelled.',
+  access_denied: 'GitHub access was denied. Authorize the Orion app on GitHub to continue.',
+  expired: 'This sign-in link expired or was already used. Start again and finish signing in within a few minutes.',
+  other_browser:
+    'Sign-in started in a different browser, or this site’s cookies were cleared along the way. Start again from this browser.',
+};
+
+export default async function AuthErrorPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; detail?: string }>;
+}) {
+  const { error, detail } = await searchParams;
+  const known = error ? KNOWN_ERRORS[error] : undefined;
+  // Older links carried the raw message in `error`; show it as a detail.
+  const technical = detail ?? (error && !known && error !== 'unknown' ? error : undefined);
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      minHeight: '100vh',
-      background: '#121212',
-      color: '#fff',
-      fontFamily: 'Inter, sans-serif',
-      padding: '20px',
-      textAlign: 'center'
-    }}>
-      <div style={{
-        background: 'rgba(255, 77, 77, 0.1)',
-        border: '1px solid rgba(255, 77, 77, 0.3)',
-        borderRadius: '12px',
-        padding: '32px',
-        maxWidth: '450px'
-      }}>
-        <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔐</div>
-        <h1 style={{ 
-          color: '#ff6b6b', 
-          marginBottom: '16px',
-          fontSize: '1.5rem',
-          fontWeight: 600
-        }}>
-          Authentication Error
-        </h1>
-        <p style={{ 
-          color: '#b3b3b3', 
-          marginBottom: '24px',
-          lineHeight: 1.6
-        }}>
-          {error}
-        </p>
-        <p style={{
-          color: '#666',
-          fontSize: '0.875rem',
-          marginBottom: '24px'
-        }}>
-          This usually happens when there are stale cookies. Click the button below to clear them and try again.
-        </p>
-        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-          <button
-            onClick={handleRetryLogin}
-            style={{
-              background: '#1db954',
-              color: '#000',
-              border: 'none',
-              padding: '12px 24px',
-              borderRadius: '24px',
-              cursor: 'pointer',
-              fontWeight: 600
-            }}
-          >
-            Clear Cookies & Retry
-          </button>
-          <Link
-            href="/"
-            style={{
-              background: 'transparent',
-              color: '#fff',
-              border: '1px solid #333',
-              padding: '12px 24px',
-              borderRadius: '24px',
-              textDecoration: 'none',
-              fontWeight: 500
-            }}
-          >
-            Go Home
-          </Link>
-        </div>
+    <div className={styles.wrap}>
+      <span className="eyebrow">Sign in</span>
+      <h1 className={styles.title}>We couldn&rsquo;t sign you in</h1>
+      <Notice tone="danger" title="What happened">
+        {known ?? 'Something interrupted the sign-in flow.'}
+        {technical && (
+          <details className={styles.technical}>
+            <summary>Technical details</summary>
+            <span className={styles.detail}>{technical.slice(0, 300)}</span>
+          </details>
+        )}
+      </Notice>
+      <p className={styles.help}>
+        Try again. If it keeps failing, clear this site&rsquo;s cookies or use a private window, then sign in once more.
+      </p>
+      <div className={styles.actions}>
+        <RetrySignIn />
+        <Link href="/" className={buttonClass({ variant: 'ghost' })}>
+          Back to home
+        </Link>
       </div>
     </div>
-  );
-}
-
-export default function AuthErrorPage() {
-  return (
-    <Suspense fallback={
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        background: '#121212',
-        color: '#fff'
-      }}>
-        Loading...
-      </div>
-    }>
-      <AuthErrorContent />
-    </Suspense>
   );
 }

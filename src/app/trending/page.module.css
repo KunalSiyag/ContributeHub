@@ -1,0 +1,17 @@
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  margin-bottom: var(--s-6);
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.count {
+  color: var(--fg-3);
+  font-size: var(--text-caption);
+}

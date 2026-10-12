@@ -70,47 +70,6 @@ export interface Label {
   description: string | null;
 }
 
-// User preferences stored in localStorage
-export interface UserPreferences {
-  skills: string[];
-  interests: string[];
-  experienceLevel: 'beginner' | 'intermediate' | 'advanced';
-  minStars: number;
-  preferredLanguages: string[];
-  theme: 'light' | 'dark' | 'system';
-}
-
-// Search filters for repositories
-export interface RepositoryFilters {
-  query?: string;
-  language?: string;
-  minStars?: number;
-  maxStars?: number;
-  topics?: string[];
-  sort?: 'stars' | 'forks' | 'updated' | 'help-wanted-issues';
-  order?: 'asc' | 'desc';
-  page?: number;
-  perPage?: number;
-}
-
-// Search filters for issues
-export interface IssueFilters {
-  labels?: string[];
-  language?: string;
-  state?: 'open' | 'closed' | 'all';
-  sort?: 'created' | 'updated' | 'comments';
-  order?: 'asc' | 'desc';
-  page?: number;
-  perPage?: number;
-}
-
-// API response wrapper
-export interface ApiResponse<T> {
-  data: T;
-  total_count: number;
-  incomplete_results: boolean;
-}
-
 // GitHub Search API response
 export interface SearchResponse<T> {
   total_count: number;
@@ -118,91 +77,28 @@ export interface SearchResponse<T> {
   items: T[];
 }
 
-// Popular programming languages
-export const POPULAR_LANGUAGES = [
-  'JavaScript',
-  'TypeScript',
-  'Python',
-  'Go',
-  'Rust',
-  'Java',
-  'Ruby',
-  'PHP',
-  'C++',
-  'C',
-  'C#',
-  'Swift',
-  'Kotlin',
-  'Vue',
-  'HTML',
-  'CSS',
-] as const;
-
-// Issue labels we care about
-export const CONTRIBUTION_LABELS = [
-  'good first issue',
-  'help wanted',
-  'beginner friendly',
-  'easy',
-  'first-timers-only',
-  'up-for-grabs',
-  'contributions welcome',
-] as const;
-
-// Popular topics for filtering
-export const POPULAR_TOPICS = [
-  'react',
-  'nodejs',
-  'machine-learning',
-  'web',
-  'api',
-  'cli',
-  'devops',
-  'docker',
-  'kubernetes',
-  'database',
-  'frontend',
-  'backend',
-  'mobile',
-  'security',
-  'testing',
-  'documentation',
-] as const;
-
-// Experience level definitions
-export const EXPERIENCE_LEVELS = {
-  beginner: {
-    label: 'Beginner',
-    description: 'New to open source, looking for simple issues',
-    starRange: [0, 5000],
-    labels: ['good first issue', 'beginner friendly', 'easy', 'first-timers-only'],
-  },
-  intermediate: {
-    label: 'Intermediate',
-    description: 'Some experience, ready for moderate challenges',
-    starRange: [100, 50000],
-    labels: ['help wanted', 'contributions welcome'],
-  },
-  advanced: {
-    label: 'Advanced',
-    description: 'Experienced contributor, seeking complex projects',
-    starRange: [1000, Infinity],
-    labels: ['help wanted'],
-  },
-} as const;
-
-export type ExperienceLevel = keyof typeof EXPERIENCE_LEVELS;
-export type PopularLanguage = typeof POPULAR_LANGUAGES[number];
-export type ContributionLabel = typeof CONTRIBUTION_LABELS[number];
-export type PopularTopic = typeof POPULAR_TOPICS[number];
-
 // Contribution Event Status
 export type EventStatus = 'upcoming' | 'active' | 'ended';
+
+export type EventPhase =
+  | 'pre-announcement'
+  | 'applications-open'
+  | 'applications-closed'
+  | 'running'
+  | 'ended';
+
+// A concrete next milestone the UI can count down to
+export interface EventDeadline {
+  label: string;
+  date: string;
+}
 
 // Contribution Event interface (GSOC, GSSOC, Hacktoberfest, etc.)
 export interface ContributionEvent {
   id: string;
   slug: string;
+  /** Template key shared by every edition, e.g. "gsoc". */
+  programKey: string;
   name: string;
   shortName: string;
   description: string;
@@ -210,40 +106,42 @@ export interface ContributionEvent {
   website: string;
   logo?: string;
   color: string; // Brand color for styling
-  
+
   // Dates
+  applicationStart?: string;
+  applicationDeadline?: string;
   registrationStart?: string;
   registrationEnd?: string;
   contributionStart: string;
   contributionEnd: string;
-  
+
   // Event details
   organizer: string;
   type: 'program' | 'fest' | 'mentorship';
   isPaid: boolean;
   isRemote: boolean;
-  
+  stipendNote?: string;
+  applicationUrl?: string;
+  cohortsNote?: string;
+
   // Stats & Info
   participatingOrgs?: number;
   totalContributors?: number;
-  
+
   // Related Labels
   labels: string[];
-  
+
   // Status computed from dates
   status?: EventStatus;
+  phase?: EventPhase;
+  nextDeadline?: EventDeadline;
+  editionYear?: number;
+  /** Page the dates come from when the program publishes them (e.g. GSoC); unset for calendar rules. */
+  officialSource?: string;
+  /** Set when the dates come from the community program list instead. */
+  communitySource?: string;
+  /** Set when the edition isn't announced yet and repeats last year's published dates. */
+  projectedFrom?: { year: number; source: string; community: boolean };
+  /** Further official dates (results, final deadlines…), in date order. */
+  milestones?: EventDeadline[];
 }
-
-// Event labels for filtering
-export const EVENT_LABELS = [
-  'hacktoberfest',
-  'gsoc',
-  'gssoc',
-  'beginner-friendly',
-  'mentorship',
-  'paid',
-  'swag',
-] as const;
-
-export type EventLabel = typeof EVENT_LABELS[number];
-

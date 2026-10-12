@@ -1,296 +1,324 @@
-.page {
-  padding: var(--space-lg);
+/* /discover — tokens only (see docs/DESIGN.md). */
+
+.tabs {
+  margin-bottom: var(--s-5);
+}
+
+/* ---------- Filters ---------- */
+
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.searchField {
+  position: relative;
+  flex: 1 1 280px;
+  min-width: 220px;
+  container-type: inline-size;
+}
+
+.searchControl {
   width: 100%;
 }
 
-.container {
-  max-width: 100%; /* Use full width as requested */
-  margin: 0 auto;
-  padding-right: var(--space-md); /* Add some right padding for breathing room */
-}
-
-.header {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-lg);
-  margin-bottom: var(--space-xl);
-}
-
-.titleArea {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xs);
-}
-
-.titleArea h1 {
-  font-size: 2rem;
-}
-
-.titleArea p {
-  color: var(--color-text-secondary);
-}
-
-.tabs {
-  display: flex;
-  gap: var(--space-xs);
-  padding: var(--space-xs);
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  width: fit-content;
-  margin-bottom: var(--space-lg);
-}
-
-.tab {
-  padding: var(--space-sm) var(--space-lg);
-  font-size: 0.9375rem;
-  font-weight: 500;
-  background: transparent;
-  border: none;
-  border-radius: var(--radius-lg);
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.tab:hover {
-  color: var(--color-text-primary);
-  background: var(--color-bg-tertiary);
-}
-
-.tabActive {
-  background: var(--color-primary);
-  color: white;
-  box-shadow: 0 0 20px var(--glow-purple);
-}
-
-.content {
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: var(--space-xl);
-}
-
-.results {
-  min-height: 400px;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(450px, 1fr)); /* Wide Project Cards */
-  gap: var(--space-lg);
-}
-
-.issueGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(500px, 1fr)); /* Wide Issue Cards */
-  gap: var(--space-lg);
-}
-
-/* Loading State */
-.loadingGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
-  gap: var(--space-lg);
-}
-
-@media (max-width: 1024px) {
-  /* Tablet optimization: Ensure at least 1-2 cols based on width */
-  .grid, .issueGrid, .loadingGrid {
-    gap: var(--space-md);
-  }
-}
-
-@media (max-width: 640px) {
-  .grid, .issueGrid, .loadingGrid {
-    grid-template-columns: 1fr;
-    gap: 15px; /* Use px for consistency with dashboard */
-  }
-}
-
-.skeleton {
-  height: 200px;
-  background: linear-gradient(
-    90deg,
-    var(--color-bg-tertiary) 25%,
-    var(--color-bg-secondary) 50%,
-    var(--color-bg-tertiary) 75%
-  );
-  background-size: 200% 100%;
-  animation: skeleton-loading 1.5s infinite;
-  border-radius: var(--radius-xl);
-}
-
-@keyframes skeleton-loading {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-/* Error State */
-.error {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-3xl);
-  text-align: center;
-  background: var(--color-bg-secondary);
-  border-radius: var(--radius-xl);
-}
-
-.errorIcon {
-  font-size: 3rem;
-  margin-bottom: var(--space-md);
-}
-
-.error p {
-  margin-bottom: var(--space-lg);
-  color: var(--color-error);
-}
-
-/* Empty State */
-.empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-3xl);
-  text-align: center;
-  background: var(--color-bg-secondary);
-  border-radius: var(--radius-xl);
-}
-
-.emptyIcon {
-  font-size: 4rem;
-  margin-bottom: var(--space-md);
-  opacity: 0.5;
-}
-
-.empty h3 {
-  margin-bottom: var(--space-sm);
-}
-
-.empty p {
-  color: var(--color-text-tertiary);
-}
-
-/* My Skills Toggle */
-.mySkillsToggle {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
-  padding: var(--space-md);
-  background: linear-gradient(145deg, rgba(168, 85, 247, 0.1), rgba(45, 212, 191, 0.05));
-  border: 1px solid rgba(168, 85, 247, 0.3);
-  border-radius: var(--radius-xl);
-  margin-bottom: var(--space-md);
-}
-
-.toggleLabel {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  cursor: pointer;
-}
-
-.toggleLabel input {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--color-primary);
-  cursor: pointer;
-}
-
-.toggleSlider {
+/* SearchInput draws its own clear button; hide the browser's duplicate. */
+.searchControl input::-webkit-search-cancel-button,
+.searchControl input::-webkit-search-decoration {
+  appearance: none;
   display: none;
 }
 
-.toggleText {
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--color-text-primary);
+.searchHint {
+  position: absolute;
+  top: 50%;
+  right: var(--s-2);
+  display: flex;
+  transform: translateY(-50%);
+  pointer-events: none;
+  transition: opacity var(--dur-fast) var(--ease-out);
 }
 
-.activeSkills {
+.searchField:focus-within .searchHint {
+  opacity: 0;
+}
+
+@container (max-width: 240px) {
+  .searchHint {
+    display: none;
+  }
+}
+
+@media (hover: none) {
+  .searchHint {
+    display: none;
+  }
+}
+
+.select {
+  flex: 0 0 auto;
+}
+
+.chipRows {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-xs);
-  padding-top: var(--space-xs);
-}
-
-.skillTag {
-  padding: 4px 10px;
-  background: var(--color-primary);
-  color: white;
-  border-radius: var(--radius-full);
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-/* My Skills Promo */
-.mySkillsPromo {
-  display: flex;
   align-items: center;
-  gap: var(--space-sm);
-  padding: var(--space-md);
-  background: var(--color-bg-secondary);
-  border: 1px dashed var(--color-border);
-  border-radius: var(--radius-xl);
-  margin-bottom: var(--space-md);
+  gap: var(--s-2) var(--s-6);
 }
 
-.mySkillsPromo span {
-  font-size: 1.5rem;
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px; /* matches the shared Pills group */
+  min-width: 0;
 }
 
-.mySkillsPromo p {
-  flex: 1;
-  font-size: 0.85rem;
-  color: var(--color-text-secondary);
-  margin: 0;
-}
-
-.promoLink {
-  padding: 6px 12px;
-  background: var(--color-primary);
-  color: white;
-  border-radius: var(--radius-md);
-  font-size: 0.8rem;
-  font-weight: 500;
-  text-decoration: none;
+.chipsLabel {
+  margin-right: var(--s-1);
   white-space: nowrap;
 }
 
-/* Responsive */
-@media (max-width: 1024px) {
-  .content {
-    grid-template-columns: 1fr;
-  }
+/* ---------- Results ---------- */
 
-  .grid,
-  .issueGrid,
-  .loadingGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.results {
+  margin-top: var(--s-6);
 }
 
-@media (max-width: 768px) {
-  .header {
-    gap: var(--space-md);
-  }
-
-  .tabs {
-    width: 100%;
-  }
-
-  .tab {
-    flex: 1;
-    text-align: center;
-  }
+.resultsHead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: var(--s-1) var(--s-4);
+  margin-bottom: var(--s-3);
 }
+
+.count {
+  min-width: 0;
+  color: var(--fg);
+  font-family: var(--font-mono);
+  font-size: var(--text-ui);
+  font-weight: 500;
+  line-height: 1.43;
+  font-variant-numeric: tabular-nums;
+}
+
+.countPending {
+  color: var(--fg-3);
+  font-weight: 400;
+}
+
+.queryLinks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--s-1) var(--s-4);
+  justify-self: end;
+}
+
+.queryLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  justify-self: end;
+  color: var(--fg-3);
+  font-size: var(--text-caption);
+  white-space: nowrap;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.queryLink:hover {
+  color: var(--fg);
+}
+
+.queryLine {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  min-width: 0;
+  min-height: 18px; /* one meta line, so the skeleton and the query take the same height */
+  color: var(--fg-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  line-height: 1.5;
+  transition: opacity var(--dur) var(--ease-out);
+}
+
+/* Previous query while a new search loads: muted, but still 4.5:1. */
+.queryLineStale {
+  color: var(--fg-4);
+}
+
+.prompt {
+  flex-shrink: 0;
+  color: var(--fg-4);
+  user-select: none;
+}
+
+.queryText {
+  min-width: 0;
+  color: inherit;
+  font: inherit;
+  overflow-wrap: anywhere;
+}
+
+.querySkeleton {
+  align-self: center;
+}
+
+/* Previous results stay in place, dimmed, while new filters load. */
+.listFrame {
+  transition: opacity var(--dur) var(--ease-out);
+}
+
+.listFrame[data-stale] {
+  opacity: 0.5;
+}
+
+.listNotice {
+  margin-bottom: var(--s-3);
+}
+
+.more {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-2);
+  margin-top: var(--s-4);
+}
+
+.moreCaption {
+  color: var(--fg-4);
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.moreNotice {
+  align-self: stretch;
+}
+
+.footnote {
+  margin-top: var(--s-4);
+  color: var(--fg-3);
+  font-size: var(--text-caption);
+  line-height: 1.55;
+}
+
+.footnoteLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  color: var(--fg);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.footnoteLink:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--line-strong);
+  text-underline-offset: 3px;
+}
+
+/* ---------- Suspense fallback ---------- */
+
+.skeletonToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.skeletonSearch {
+  flex: 1 1 280px;
+  min-width: 220px;
+}
+
+.skeletonSelect {
+  flex: 0 0 150px;
+}
+
+/* ---------- Phones ---------- */
 
 @media (max-width: 640px) {
-  .grid,
-  .issueGrid,
-  .loadingGrid {
-    grid-template-columns: 1fr;
+  .searchField,
+  .skeletonSearch {
+    flex-basis: 100%;
+    min-width: 0;
   }
+
+  .select,
+  .skeletonSelect {
+    flex: 1 1 140px;
+    min-width: 0;
+  }
+
+  /* One swipeable line per chip group instead of a wall of wrapped pills. */
+  .chipRows {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: var(--s-2);
+  }
+
+  .chips {
+    flex-wrap: nowrap;
+    /* Bleed to the screen edge; the block padding keeps focus rings unclipped. */
+    margin: calc(var(--s-1) * -1) calc(var(--gutter) * -1);
+    padding: var(--s-1) var(--gutter);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  .results {
+    margin-top: var(--s-5);
+  }
+}
+
+/* ---------- Describe what you want ---------- */
+
+.describeToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  align-self: flex-start;
+  padding: 2px 0;
+  color: var(--fg-3);
+  font-size: var(--text-caption);
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.describeToggle:hover {
+  color: var(--fg);
+}
+
+.describe {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--s-2) var(--s-2);
+  align-items: center;
+}
+
+.describeField {
+  min-width: 0;
+}
+
+.describeStatus {
+  grid-column: 1 / -1;
+  margin: 0;
+  min-height: 1lh;
+  color: var(--fg-3);
+  font-size: var(--text-caption);
+}
+
+.describeStatus:empty {
+  display: none;
 }

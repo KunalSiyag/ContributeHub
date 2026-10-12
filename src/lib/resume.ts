@@ -47,20 +47,19 @@ const DATABASES = [
   'Firestore', 'Fauna', 'CockroachDB'
 ];
 
+// Keys match INTEREST_AREAS in lib/matching.ts.
 const INTEREST_KEYWORDS: Record<string, string[]> = {
-  'web': ['web development', 'frontend', 'backend', 'full stack', 'fullstack', 'web app', 'website'],
-  'mobile': ['mobile', 'android', 'ios', 'react native', 'flutter', 'swift', 'kotlin'],
-  'machine-learning': ['machine learning', 'ml', 'deep learning', 'neural network', 'ai', 'artificial intelligence', 'nlp', 'computer vision'],
-  'devops': ['devops', 'ci/cd', 'infrastructure', 'cloud', 'sre', 'site reliability'],
-  'security': ['security', 'cybersecurity', 'infosec', 'penetration testing', 'ethical hacking'],
-  'blockchain': ['blockchain', 'web3', 'smart contract', 'solidity', 'ethereum', 'defi', 'nft'],
-  'database': ['database', 'data engineering', 'data pipeline', 'etl', 'data warehouse'],
-  'api': ['api', 'rest', 'graphql', 'microservices', 'backend'],
-  'frontend': ['frontend', 'ui', 'ux', 'user interface', 'user experience', 'css', 'design system'],
-  'backend': ['backend', 'server', 'api', 'database', 'microservice'],
-  'testing': ['testing', 'qa', 'quality assurance', 'test automation', 'unit test', 'e2e'],
-  'documentation': ['documentation', 'technical writing', 'docs'],
-  'cli': ['cli', 'command line', 'terminal', 'shell script'],
+  web: ['web development', 'frontend', 'full stack', 'fullstack', 'web app', 'website', 'user interface', 'design system'],
+  backend: ['backend', 'api', 'rest', 'graphql', 'microservice', 'server'],
+  mobile: ['mobile', 'android', 'ios', 'react native', 'flutter'],
+  ml: ['machine learning', 'deep learning', 'neural network', 'artificial intelligence', 'nlp', 'computer vision', 'llm'],
+  devops: ['devops', 'ci/cd', 'infrastructure', 'cloud', 'sre', 'site reliability', 'kubernetes'],
+  data: ['data engineering', 'data pipeline', 'etl', 'data warehouse', 'analytics', 'database'],
+  security: ['security', 'cybersecurity', 'infosec', 'penetration testing', 'ethical hacking'],
+  docs: ['documentation', 'technical writing', 'docs'],
+  tooling: ['cli', 'command line', 'developer tools', 'testing', 'test automation'],
+  games: ['game development', 'game engine', 'unity', 'unreal', 'graphics'],
+  web3: ['blockchain', 'web3', 'smart contract', 'solidity', 'ethereum', 'defi'],
 };
 
 const EXPERIENCE_INDICATORS = {
@@ -97,6 +96,18 @@ const EXPERIENCE_INDICATORS = {
  * Fast rule-based skill extraction from resume text
  * Completes in <100ms for most resumes
  */
+// Names that are also everyday words; only match them with exact casing.
+const CASE_SENSITIVE = new Set([
+  'Go', 'R', 'Swift', 'Rust', 'Ruby', 'Dart', 'Lua', 'Julia', 'Shell', 'Spring', 'Echo', 'Gin', 'Fiber',
+  'Chef', 'Puppet', 'Express', 'Apache', 'Oracle', 'Remix', 'Recoil', 'Apollo', 'Helm', 'Caddy', 'Railway',
+]);
+
+function findMatch(source: string, pattern: string): string | null {
+  const flags = CASE_SENSITIVE.has(pattern) ? 'g' : 'gi';
+  const match = source.match(new RegExp(`(?<![\\w.+#-])${pattern}(?![\\w+#])`, flags));
+  return match ? match[0] : null;
+}
+
 export function extractSkillsFast(resumeText: string): ResumeAnalysisResult {
   const text = resumeText.toLowerCase();
   const originalText = resumeText;
@@ -104,40 +115,27 @@ export function extractSkillsFast(resumeText: string): ResumeAnalysisResult {
   // Extract programming languages
   const skills = new Set<string>();
   for (const lang of PROGRAMMING_LANGUAGES) {
-    const regex = new RegExp(`\\b${lang}\\b`, 'gi');
-    const matches = originalText.match(regex);
-    if (matches) {
-      // Normalize the match (e.g., "c++" -> "C++")
-      skills.add(normalizeSkill(matches[0]));
-    }
+    const match = findMatch(originalText, lang);
+    if (match) skills.add(normalizeSkill(match));
   }
   
   // Extract frameworks/libraries
   const technologies = new Set<string>();
   for (const fw of FRAMEWORKS_LIBRARIES) {
-    const regex = new RegExp(`\\b${fw}\\b`, 'gi');
-    const matches = originalText.match(regex);
-    if (matches) {
-      technologies.add(normalizeSkill(matches[0]));
-    }
+    const match = findMatch(originalText, fw);
+    if (match) technologies.add(normalizeSkill(match));
   }
   
   // Extract DevOps tools
   for (const tool of DEVOPS_TOOLS) {
-    const regex = new RegExp(`\\b${tool}\\b`, 'gi');
-    const matches = originalText.match(regex);
-    if (matches) {
-      technologies.add(normalizeSkill(matches[0]));
-    }
+    const match = findMatch(originalText, tool);
+    if (match) technologies.add(normalizeSkill(match));
   }
   
   // Extract databases
   for (const db of DATABASES) {
-    const regex = new RegExp(`\\b${db}\\b`, 'gi');
-    const matches = originalText.match(regex);
-    if (matches) {
-      technologies.add(normalizeSkill(matches[0]));
-    }
+    const match = findMatch(originalText, db);
+    if (match) technologies.add(normalizeSkill(match));
   }
   
   // Extract interests based on keywords
@@ -259,25 +257,18 @@ function normalizeSkill(skill: string): string {
  */
 export function mergeAnalysisResults(
   fastResult: ResumeAnalysisResult,
-  aiResult: Partial<ResumeAnalysisResult>
+  aiResult: Partial<ResumeAnalysisResult> | null
 ): ResumeAnalysisResult {
-  // Combine and deduplicate
-  const skills = [...new Set([...fastResult.skills, ...(aiResult.skills || [])])];
-  const technologies = [...new Set([...fastResult.technologies, ...(aiResult.technologies || [])])];
-  const interests = [...new Set([...fastResult.interests, ...(aiResult.interests || [])])];
-  
-  // Use AI experience level if available and confidence is higher
-  const experienceLevel = aiResult.experienceLevel || fastResult.experienceLevel;
-  
-  // Boost confidence when both sources agree
-  const confidence = Math.min(100, fastResult.confidence + (aiResult.confidence || 0) / 2);
-  
+  if (!aiResult) return fastResult;
+  const merge = (a: string[], b?: string[]) => Array.from(new Set([...a, ...(b ?? [])]));
+  const aiFound = (aiResult.skills?.length ?? 0) + (aiResult.technologies?.length ?? 0) > 0;
+
   return {
-    skills,
-    technologies,
-    interests,
-    experienceLevel,
-    confidence,
-    source: 'hybrid',
+    skills: merge(fastResult.skills, aiResult.skills),
+    technologies: merge(fastResult.technologies, aiResult.technologies),
+    interests: merge(fastResult.interests, aiResult.interests),
+    experienceLevel: aiResult.experienceLevel || fastResult.experienceLevel,
+    confidence: aiFound ? Math.min(100, fastResult.confidence + 15) : fastResult.confidence,
+    source: aiFound ? 'hybrid' : 'fast',
   };
 }

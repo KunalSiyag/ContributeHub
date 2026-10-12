@@ -1,0 +1,292 @@
+/* Year-at-a-glance timeline: 12 equal month columns, one 28px track per program
+   with two lanes (applications above, program period below). */
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.scroller {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  background: var(--surface);
+  border-radius: var(--r);
+  box-shadow: var(--ring);
+}
+
+.scroller:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.chart {
+  --label-w: 128px;
+  --row-h: 28px;
+  --lane-h: 10px;
+
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: var(--label-w) minmax(0, 1fr);
+  grid-template-rows: auto auto 28px;
+  min-width: 760px;
+  padding-right: var(--s-4);
+}
+
+/* ---------- Axis ---------- */
+
+.corner,
+.cornerBottom {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  grid-column: 1;
+  background: var(--surface);
+}
+
+.corner {
+  grid-row: 1;
+}
+
+.cornerBottom {
+  grid-row: 3;
+}
+
+.axis {
+  grid-column: 2;
+  grid-row: 1;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  padding: var(--s-3) 0 var(--s-2);
+}
+
+.month {
+  display: flex;
+  flex-direction: column;
+  padding-left: var(--s-2);
+  color: var(--fg-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-eyebrow);
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.year {
+  color: var(--fg-4);
+  font-weight: 400;
+}
+
+.grid {
+  grid-column: 2;
+  grid-row: 1 / -1;
+  z-index: 0;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  pointer-events: none;
+}
+
+.gridCell {
+  border-left: 1px solid var(--line);
+}
+
+.gridCell:last-child {
+  border-right: 1px solid var(--line);
+}
+
+/* ---------- Tracks ---------- */
+
+.tracks {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  list-style: none;
+  border-top: 1px solid var(--line);
+}
+
+/* Each track is 28px including its bottom hairline: 2px, 10px lane, 3px, 10px lane, 2px. */
+.track {
+  display: grid;
+  grid-template-columns: var(--label-w) minmax(0, 1fr);
+  height: var(--row-h);
+  border-bottom: 1px solid var(--line);
+}
+
+.trackLabel {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  display: block;
+  padding: 0 var(--s-3) 0 var(--s-4);
+  background: var(--surface);
+  color: var(--fg-2);
+  font-size: var(--text-caption);
+  line-height: calc(var(--row-h) - 1px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.trackLabel:hover {
+  color: var(--fg);
+  text-decoration: underline;
+  text-decoration-color: var(--line-strong);
+  text-underline-offset: 3px;
+}
+
+.trackLabel:focus-visible {
+  outline-offset: -2px;
+}
+
+.lane {
+  position: relative;
+}
+
+/* ---------- Bars ---------- */
+
+.bar {
+  position: absolute;
+  z-index: 1;
+  left: var(--start);
+  right: calc(100% - var(--end));
+  min-width: 3px;
+  height: var(--lane-h);
+  border-radius: var(--r-sm);
+}
+
+.laneTop {
+  top: 2px;
+}
+
+.laneBottom {
+  top: 15px;
+}
+
+/* Application window: outline with a hairline hatch. */
+.apps {
+  border: 1px solid var(--fg-3);
+  background-color: transparent;
+  background-image: repeating-linear-gradient(-45deg, var(--line) 0 1px, transparent 1px 4px);
+}
+
+.appsNow {
+  border-color: var(--fg);
+  background-image: repeating-linear-gradient(-45deg, var(--line-strong) 0 1px, transparent 1px 4px);
+}
+
+/* Program period: quiet fill; the running one is solid. */
+.program {
+  border: 1px solid var(--line-strong);
+  background: var(--surface-3);
+}
+
+.programNow {
+  border-color: var(--fg);
+  background: var(--fg);
+}
+
+/* Windows that closed earlier this month recede. */
+.appsPast {
+  border-color: var(--line-strong);
+}
+
+.programPast {
+  border-color: var(--line);
+  background: var(--surface-2);
+}
+
+/* Square edges where a window continues past the visible range. */
+.clipStart {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.clipEnd {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+/* ---------- Today ---------- */
+
+.todayLayer {
+  grid-column: 2;
+  grid-row: 2 / 4;
+  position: relative;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Today always falls in the first month column, so the label reads rightwards from the line. */
+.today {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--x);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.todayLine {
+  flex: 1;
+  width: 1px;
+  margin-left: -0.5px;
+  background: var(--accent);
+}
+
+.todayLabel {
+  margin-left: -0.5px;
+  padding: var(--s-1) 0;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: var(--text-eyebrow);
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* ---------- Legend ---------- */
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2) var(--s-5);
+  list-style: none;
+  color: var(--fg-3);
+  font-size: var(--text-caption);
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.swatchPair {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.swatchPair .swatch {
+  width: 14px;
+}
+
+.swatch {
+  width: 20px;
+  height: 10px;
+  border-radius: var(--r-sm);
+}
+
+.swatchToday {
+  width: 1px;
+  height: 14px;
+  margin: 0 var(--s-1);
+  background: var(--accent);
+}

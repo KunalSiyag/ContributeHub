@@ -1,0 +1,25 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  max-width: 520px;
+  margin: 8vh auto 0;
+}
+
+.title {
+  font-size: var(--text-title);
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+}
+
+.body {
+  color: var(--fg-3);
+  font-size: var(--text-ui);
+  line-height: 1.6;
+}
+
+.actions {
+  display: flex;
+  gap: var(--s-2);
+  margin-top: var(--s-2);
+}

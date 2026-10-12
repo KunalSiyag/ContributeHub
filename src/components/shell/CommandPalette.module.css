@@ -1,0 +1,140 @@
+.dialog {
+  width: min(600px, calc(100vw - 32px));
+  max-height: min(520px, calc(100dvh - 96px));
+  margin: 12vh auto auto;
+  padding: 0;
+  border: none;
+  border-radius: var(--r);
+  background: var(--surface);
+  color: var(--fg);
+  box-shadow: var(--shadow-overlay);
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
+.dialog[open] {
+  animation: palette-in var(--dur) var(--ease-out);
+}
+
+.dialog::backdrop {
+  background: var(--scrim);
+  animation: var(--kf-fade-in) var(--dur) var(--ease-out);
+}
+
+@keyframes palette-in {
+  from {
+    opacity: 0;
+    transform: scale(0.98) translateY(-4px);
+  }
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  max-height: inherit;
+}
+
+.inputRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 52px;
+  padding: 0 14px 0 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.inputIcon {
+  color: var(--fg-4);
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--fg);
+  font-size: var(--text-body);
+}
+
+.input::placeholder {
+  color: var(--fg-4);
+}
+
+.results {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px;
+  list-style: none;
+}
+
+.group {
+  padding: 10px 10px 6px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 38px;
+  padding: 0 10px;
+  border-radius: var(--r);
+  color: var(--fg-2);
+  font-size: var(--text-ui);
+  text-align: left;
+}
+
+.item[aria-selected='true'] {
+  background: var(--surface-2);
+  color: var(--fg);
+}
+
+.itemIcon {
+  display: inline-flex;
+  justify-content: center;
+  width: 16px;
+  color: var(--fg-3);
+}
+
+.itemLabel {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.itemHint {
+  max-width: 40%;
+  overflow: hidden;
+  color: var(--fg-4);
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.empty {
+  padding: 24px;
+  color: var(--fg-3);
+  font-size: var(--text-caption);
+  text-align: center;
+}
+
+.footer {
+  display: flex;
+  gap: 16px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--fg-3);
+  font-size: var(--text-caption);
+}
+
+.footer span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}

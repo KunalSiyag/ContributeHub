@@ -1,0 +1,453 @@
+/* ---------- Tabs (underline) ---------- */
+
+.tabs {
+  display: flex;
+  align-items: stretch;
+  gap: var(--s-1);
+  border-bottom: 1px solid var(--line);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 10px;
+  color: var(--fg-3);
+  font-size: var(--text-ui);
+  white-space: nowrap;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.tab::before {
+  content: '';
+  position: absolute;
+  inset: 6px 0;
+  border-radius: var(--r);
+  background: transparent;
+  z-index: -1;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+
+.tab:hover {
+  color: var(--fg);
+}
+
+.tab:hover::before {
+  background: var(--surface-2);
+}
+
+.tab[aria-selected='true'],
+.tab[aria-current='page'] {
+  color: var(--fg);
+}
+
+.tab[aria-selected='true']::after,
+.tab[aria-current='page']::after {
+  content: '';
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: var(--fg);
+}
+
+.tabCount {
+  color: var(--fg-4);
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  font-variant-numeric: tabular-nums;
+}
+
+.tabs {
+  isolation: isolate;
+}
+
+/* ---------- Segmented ---------- */
+
+.segmented {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: var(--r);
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.segment {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: var(--r-sm);
+  color: var(--fg-3);
+  font-size: var(--text-caption);
+  font-weight: 500;
+  white-space: nowrap;
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+
+.segment:hover {
+  color: var(--fg);
+}
+
+.segment[aria-checked='true'],
+.segment[aria-pressed='true'] {
+  background: var(--surface);
+  color: var(--fg);
+  box-shadow: var(--ring);
+}
+
+.segmentIconOnly {
+  width: 28px;
+  padding: 0;
+}
+
+/* ---------- Pills (filter chips) ---------- */
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pillsScroll {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin-inline: calc(var(--gutter) * -1);
+  padding-inline: var(--gutter);
+}
+
+.pillsScroll::-webkit-scrollbar {
+  display: none;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 11px;
+  border-radius: var(--r-full);
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--fg-2);
+  font-size: var(--text-caption);
+  white-space: nowrap;
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+
+.pill:hover {
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+  color: var(--fg);
+}
+
+.pill[aria-pressed='true'],
+.pill[aria-current='true'] {
+  background: var(--primary);
+  box-shadow: none;
+  color: var(--on-primary);
+}
+
+.pillCount {
+  color: var(--fg-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-eyebrow);
+}
+
+/* On a selected (filled) pill the count follows the pill's text color. */
+.pill[aria-pressed='true'] .pillCount,
+.pill[aria-current='true'] .pillCount {
+  color: inherit;
+  opacity: 0.75;
+}
+
+/* ---------- Menu ---------- */
+
+.menuRoot {
+  position: relative;
+  display: inline-flex;
+}
+
+.menu {
+  position: fixed;
+  z-index: 300;
+  min-width: 200px;
+  max-width: 280px;
+  padding: 4px;
+  border-radius: var(--r);
+  background: var(--surface);
+  box-shadow: var(--shadow-overlay);
+  transform-origin: top;
+  animation: menu-in var(--dur) var(--ease-out);
+}
+
+.menuStart {
+  transform-origin: top left;
+}
+
+.menuEnd {
+  transform-origin: top right;
+}
+
+.menuUp {
+  transform-origin: bottom;
+}
+
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(-2px);
+  }
+}
+
+.menuLabel {
+  padding: 6px 8px 4px;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 32px;
+  padding: 0 8px;
+  border-radius: var(--r-sm);
+  color: var(--fg-2);
+  font-size: var(--text-ui);
+  text-align: left;
+  cursor: pointer;
+}
+
+.menuItem:hover,
+.menuItem:focus-visible {
+  background: var(--surface-2);
+  color: var(--fg);
+  outline: none;
+}
+
+.menuItem[aria-disabled='true'] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.menuItemDanger {
+  color: var(--status-danger);
+}
+
+.menuItemDanger:hover,
+.menuItemDanger:focus-visible {
+  background: var(--danger-soft);
+  color: var(--status-danger);
+}
+
+.menuIcon {
+  display: inline-flex;
+  width: 16px;
+  justify-content: center;
+  color: var(--fg-3);
+}
+
+.menuItemDanger .menuIcon {
+  color: inherit;
+}
+
+.menuText {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menuCheck {
+  color: var(--fg);
+}
+
+.menuHint {
+  color: var(--fg-4);
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+}
+
+.menuSeparator {
+  height: 1px;
+  margin: 4px -4px;
+  background: var(--line);
+}
+
+/* ---------- Dialog ---------- */
+
+.dialog {
+  width: min(480px, calc(100vw - 32px));
+  max-height: calc(100dvh - 64px);
+  margin: auto;
+  padding: 0;
+  border: none;
+  border-radius: var(--r);
+  background: var(--surface);
+  color: var(--fg);
+  box-shadow: var(--shadow-overlay);
+  overscroll-behavior: contain;
+}
+
+.dialog[open] {
+  animation: dialog-in var(--dur-slow) var(--ease-out);
+}
+
+.dialog::backdrop {
+  background: var(--scrim);
+  animation: var(--kf-fade-in) var(--dur) var(--ease-out);
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+
+.dialogInner {
+  display: flex;
+  flex-direction: column;
+}
+
+.dialogHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--s-5) var(--s-5) 0;
+}
+
+.dialogTitle {
+  font-size: var(--text-body);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.dialogDescription {
+  color: var(--fg-3);
+  font-size: var(--text-caption);
+  line-height: 1.55;
+}
+
+.dialogBody {
+  padding: var(--s-4) var(--s-5);
+}
+
+.dialogFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--s-2);
+  padding: var(--s-3) var(--s-5);
+  border-top: 1px solid var(--line);
+  background: var(--bg);
+  border-radius: 0 0 var(--r) var(--r);
+}
+
+/* ---------- Toast ---------- */
+
+.toastRegion {
+  position: fixed;
+  z-index: 100;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 8px 8px 8px 12px;
+  border-radius: var(--r);
+  background: var(--surface);
+  box-shadow: var(--shadow-overlay);
+  color: var(--fg);
+  font-size: var(--text-ui);
+  pointer-events: auto;
+  animation: toast-in var(--dur-slow) var(--ease-out);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.toastIcon {
+  display: inline-flex;
+  color: var(--fg-3);
+}
+
+.toastSuccess .toastIcon {
+  color: var(--accent);
+}
+
+.toastError .toastIcon {
+  color: var(--status-danger);
+}
+
+.toastMessage {
+  flex: 1;
+  min-width: 0;
+  padding-right: 4px;
+}
+
+.toastAction {
+  height: 26px;
+  padding: 0 8px;
+  border-radius: var(--r-sm);
+  color: var(--fg);
+  font-size: var(--text-caption);
+  font-weight: 500;
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+}
+
+.toastAction:hover {
+  background: var(--surface-2);
+}
+
+.toastClose {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--r-sm);
+  color: var(--fg-4);
+}
+
+.toastClose:hover {
+  background: var(--surface-2);
+  color: var(--fg);
+}
+
+@media (max-width: 640px) {
+  .toastRegion {
+    left: 16px;
+    align-items: stretch;
+  }
+}

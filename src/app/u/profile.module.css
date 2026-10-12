@@ -1,0 +1,225 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  color: var(--fg-3);
+  font-size: var(--text-caption);
+}
+
+.back:hover {
+  color: var(--fg);
+}
+
+.header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--s-5);
+  align-items: center;
+}
+
+.identity {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.name {
+  font-size: var(--text-title);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+
+.login {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  color: var(--fg-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+}
+
+.location {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-sans);
+}
+
+.bio {
+  max-width: 70ch;
+  margin-top: var(--s-1);
+  color: var(--fg-2);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--ring);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 4px;
+  padding: var(--s-5);
+  border-right: 1px solid var(--line);
+}
+
+.stat:last-child {
+  border-right: none;
+}
+
+.stat dt {
+  color: var(--fg-3);
+  font-size: var(--text-caption);
+}
+
+.stat dd {
+  color: var(--fg);
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: var(--s-8);
+  align-items: start;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-8);
+  min-width: 0;
+}
+
+.calendar {
+  padding: var(--s-5);
+  overflow: hidden;
+}
+
+.muted {
+  color: var(--fg-3);
+  font-size: var(--text-caption);
+}
+
+.aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+
+.sidePanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding: var(--s-5);
+}
+
+.sideTitle {
+  color: var(--fg-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-eyebrow);
+  font-weight: 500;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.sideNote {
+  color: var(--fg-3);
+  font-size: var(--text-caption);
+  line-height: 1.5;
+}
+
+.repoList,
+.languages {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  list-style: none;
+}
+
+.languages li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 0;
+  color: var(--fg-2);
+  font-size: var(--text-caption);
+}
+
+.repoLink {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin: 0 calc(var(--s-2) * -1);
+  padding: 6px var(--s-2);
+  border-radius: var(--r-sm);
+  color: var(--fg-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+}
+
+.repoLink:hover {
+  background: var(--surface-2);
+  color: var(--fg);
+}
+
+.repoName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.repoCount {
+  color: var(--fg-4);
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 960px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .stat:nth-child(2) {
+    border-right: none;
+  }
+
+  .stat:nth-child(-n + 2) {
+    border-bottom: 1px solid var(--line);
+  }
+}
+
+@media (max-width: 640px) {
+  .header {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .header > :last-child {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}

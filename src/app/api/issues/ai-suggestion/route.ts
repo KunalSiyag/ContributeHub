@@ -1,100 +1,70 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { NextResponse } from 'next/server';
+import { generateJSON, GEMINI_MODEL, isAIAvailable } from '@/lib/gemini';
+import { jsonError, readJson } from '@/lib/api';
+import { allowRequest, clientKey } from '@/lib/rate-limit';
 
-const GEMINI_API_KEY = process.env.GOOGLE_GEMINI_API_KEY;
-
-const SYSTEM_PROMPT = `You are an expert open source contributor assistant. Given a GitHub issue, provide a structured suggestion on how to fix it.
-
-Your response must be valid JSON with this structure:
-{
-  "summary": "A 1-2 sentence summary of what needs to be done",
-  "steps": ["Step 1 description", "Step 2 description", ...],
-  "skills": ["skill1", "skill2", ...],
-  "difficulty": "easy" | "medium" | "hard",
-  "timeEstimate": "e.g. 1-2 hours, 1 day, etc."
+interface Body {
+  title?: unknown;
+  body?: unknown;
+  labels?: unknown;
+  repo?: unknown;
 }
 
-Keep steps concise and actionable (max 5 steps). Skills should be technologies/concepts needed. Base difficulty on issue complexity. Be practical and helpful.`;
+interface Suggestion {
+  summary: string;
+  steps: string[];
+  skills: string[];
+  difficulty: 'easy' | 'medium' | 'hard';
+  timeEstimate: string;
+}
 
-export async function POST(request: NextRequest) {
-  try {
-    const { title, body, labels, repo } = await request.json();
+const text = (value: unknown, max: number) => (typeof value === 'string' ? value.slice(0, max) : '');
 
-    if (!title) {
-      return NextResponse.json(
-        { error: 'Issue title is required' },
-        { status: 400 }
-      );
-    }
+/**
+ * POST /api/issues/ai-suggestion — an AI-drafted approach for an issue.
+ * Responds { available: false } instead of fabricating output when AI is
+ * not configured or the model call fails.
+ */
+export async function POST(request: Request) {
+  const body = await readJson<Body>(request);
+  const title = text(body?.title, 300);
+  if (!title) return jsonError(400, 'invalid_body', 'Issue title is required.');
 
-    if (!GEMINI_API_KEY) {
-      // Return mock data if no API key
-      return NextResponse.json({
-        summary: "This issue requires investigation and implementation based on the description provided.",
-        steps: [
-          "Read through the issue description and any linked resources",
-          "Set up your local development environment",
-          "Identify the relevant files and code sections",
-          "Implement the fix or feature",
-          "Write tests and submit a pull request"
-        ],
-        skills: labels?.slice(0, 3) || ["Programming", "Git"],
-        difficulty: "medium",
-        timeEstimate: "2-4 hours"
-      });
-    }
-
-    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite' });
-
-    const prompt = `${SYSTEM_PROMPT}
-
-GitHub Issue:
-Repository: ${repo}
-Title: ${title}
-Labels: ${labels?.join(', ') || 'None'}
-Description: ${body?.slice(0, 2000) || 'No description provided'}
-
-Provide your JSON response:`;
-
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
-
-    // Extract JSON from response
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error('No valid JSON in response');
-    }
-
-    const suggestion = JSON.parse(jsonMatch[0]);
-
-    // Validate and sanitize response
-    const validatedSuggestion = {
-      summary: suggestion.summary || "Analysis required for this issue.",
-      steps: Array.isArray(suggestion.steps) ? suggestion.steps.slice(0, 5) : ["Investigate the issue further"],
-      skills: Array.isArray(suggestion.skills) ? suggestion.skills.slice(0, 5) : ["Programming"],
-      difficulty: ['easy', 'medium', 'hard'].includes(suggestion.difficulty) ? suggestion.difficulty : 'medium',
-      timeEstimate: suggestion.timeEstimate || "Varies"
-    };
-
-    return NextResponse.json(validatedSuggestion);
-  } catch (error) {
-    console.error('AI suggestion error:', error);
-    
-    // Return fallback on error
-    return NextResponse.json({
-      summary: "This issue needs further investigation. Check the description and repository documentation for context.",
-      steps: [
-        "Fork the repository and clone locally",
-        "Read the contributing guidelines",
-        "Understand the existing codebase",
-        "Implement your changes",
-        "Submit a well-documented PR"
-      ],
-      skills: ["Open Source", "Git", "Code Review"],
-      difficulty: "medium",
-      timeEstimate: "2-4 hours"
-    });
+  if (!(await isAIAvailable())) {
+    return NextResponse.json({ available: false, reason: 'unavailable' });
   }
+  if (!allowRequest(`ai:${clientKey(request)}`, 12, 10 * 60 * 1000)) {
+    return jsonError(429, 'rate_limited', 'Too many AI requests. Try again in a few minutes.');
+  }
+
+  const labels = Array.isArray(body?.labels)
+    ? body.labels.filter((l): l is string => typeof l === 'string').slice(0, 10)
+    : [];
+
+  const prompt = `You help open source contributors plan a fix. Read the GitHub issue and respond with JSON only:
+{"summary": string (1-2 sentences: what needs to change), "steps": string[] (3-5 concrete steps, each under 25 words),
+ "skills": string[] (max 5 technologies or concepts), "difficulty": "easy" | "medium" | "hard",
+ "timeEstimate": string (e.g. "2-4 hours")}
+Be specific to this repository and issue. Do not invent file names you cannot infer.
+
+Repository: ${text(body?.repo, 140)}
+Title: ${title}
+Labels: ${labels.join(', ') || 'none'}
+Description:
+${text(body?.body, 3000) || 'No description provided.'}`;
+
+  const result = await generateJSON<Partial<Suggestion>>(prompt, { maxOutputTokens: 700 });
+  if (!result || typeof result.summary !== 'string' || !Array.isArray(result.steps)) {
+    return NextResponse.json({ available: false, reason: 'failed' });
+  }
+
+  const suggestion: Suggestion = {
+    summary: result.summary.slice(0, 400),
+    steps: result.steps.filter((s): s is string => typeof s === 'string').slice(0, 5),
+    skills: Array.isArray(result.skills) ? result.skills.filter((s): s is string => typeof s === 'string').slice(0, 5) : [],
+    difficulty: result.difficulty === 'easy' || result.difficulty === 'hard' ? result.difficulty : 'medium',
+    timeEstimate: typeof result.timeEstimate === 'string' ? result.timeEstimate.slice(0, 40) : '',
+  };
+
+  return NextResponse.json({ available: true, model: GEMINI_MODEL, suggestion });
 }
