@@ -1,161 +1,183 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode, useMemo, useRef } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { User } from '@supabase/supabase-js';
-import type { Profile } from '@/types/database';
+import { createClient, isSupabaseConfigured } from '@/lib/supabase/client';
+import { githubLoginOf, profileSeed } from '@/lib/identity';
+import { PROVIDER_LABEL, type OAuthProvider } from '@/hooks/useAuthProviders';
+import { useToast } from '@/components/ui/Toast';
+import type { Database, Profile } from '@/types/database';
+
+type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
 
 interface AuthContextType {
   user: User | null;
   profile: Profile | null;
+  /** GitHub login from the profile or a GitHub sign-in; null for Google-only accounts without one. */
+  githubLogin: string | null;
+  /** True until the initial session check finishes. */
   loading: boolean;
-  signInWithGitHub: () => Promise<void>;
+  /** True once the signed-in user's profile row has been loaded (or there is no user). */
+  profileReady: boolean;
+  /** False when Supabase env vars are missing; sign-in is unavailable. */
+  configured: boolean;
+  /** Starts the OAuth redirect; resolves false when it couldn't start. */
+  signIn: (provider: OAuthProvider, next?: string) => Promise<boolean>;
   signOut: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
+  updateProfile: (patch: ProfileUpdate) => Promise<{ error: string | null }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const initialized = useRef(false);
-  
-  // Create supabase client once
-  const supabase = useMemo(() => createClient(), []);
+/** Token refreshes emit a new User object for the same account; keep the old one. */
+function sameUser(prev: User | null, next: User | null) {
+  return prev === next || (!!prev && !!next && prev.id === next.id && prev.updated_at === next.updated_at);
+}
 
-  const fetchProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .maybeSingle(); // Use maybeSingle to avoid 406 when profile doesn't exist
-      
-      if (error) {
-        console.log('Profile fetch error:', error.message);
-        return null;
-      }
-      return data;
-    } catch (err) {
-      console.error('Error fetching profile:', err);
-      return null;
-    }
-  };
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const configured = isSupabaseConfigured();
+  const { toast } = useToast();
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(configured);
+  // Profile is stored with the user id it belongs to, so a stale profile is
+  // never shown for a different (or signed-out) user.
+  const [profileState, setProfileState] = useState<{ userId: string; profile: Profile | null } | null>(null);
 
   useEffect(() => {
-    // Prevent double initialization in strict mode
-    if (initialized.current) return;
-    initialized.current = true;
+    if (!configured) return;
+    const supabase = createClient();
+    let active = true;
 
-    let mounted = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (!active) return;
+      const next = data.session?.user ?? null;
+      setUser(prev => (sameUser(prev, next) ? prev : next));
+      setLoading(false);
+    });
 
-    const getInitialSession = async () => {
-      try {
-        // Use getSession instead of getUser for faster initial load
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (!mounted) return;
-        
-        if (error) {
-          console.log('Session check error:', error.message);
-        } else {
-          console.log('Session check success:', session ? `User: ${session.user.email}` : 'No session found');
-        }
-        
-        const currentUser = session?.user ?? null;
-        setUser(currentUser);
-        
-        if (currentUser) {
-          const userProfile = await fetchProfile(currentUser.id);
-          if (mounted) setProfile(userProfile);
-        }
-      } catch (err) {
-        if (mounted) console.error('Auth init error:', err);
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    };
-
-    getInitialSession();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event: string, session: { user: User } | null) => {
-        if (!mounted) return;
-        
-        console.log('Auth event:', event);
-        const currentUser = session?.user ?? null;
-        setUser(currentUser);
-        
-        if (currentUser) {
-          const userProfile = await fetchProfile(currentUser.id);
-          if (mounted) setProfile(userProfile);
-        } else {
-          setProfile(null);
-        }
-        
-        // Ensure loading is false after auth change
-        setLoading(false);
-      }
-    );
+    // Keep this callback synchronous: awaiting Supabase calls inside it can
+    // deadlock the auth lock. Profile loading happens in the effect below.
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!active) return;
+      const next = session?.user ?? null;
+      setUser(prev => (sameUser(prev, next) ? prev : next));
+      setLoading(false);
+    });
 
     return () => {
-      mounted = false;
-      subscription.unsubscribe();
+      active = false;
+      data.subscription.unsubscribe();
     };
-  }, [supabase]);
+  }, [configured]);
 
-  const signInWithGitHub = async () => {
-    try {
-      const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/';
-      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(currentPath)}`;
-      
-      console.log('Starting GitHub OAuth...');
-      
-      // Sign out to clear any existing session
-      await supabase.auth.signOut();
-      
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'github',
-        options: { redirectTo },
-      });
-      
-      if (error) {
-        console.error('OAuth error:', error.message);
-        alert(`Login failed: ${error.message}`);
-      } else if (data?.url) {
-        window.location.href = data.url;
+  const loadProfile = useCallback(async (current: User) => {
+    const supabase = createClient();
+    const { data, error } = await supabase.from('profiles').select('*').eq('id', current.id).maybeSingle();
+
+    if (error) {
+      setProfileState({ userId: current.id, profile: null });
+      return;
+    }
+
+    if (data) {
+      // A GitHub identity linked after signup (same email) leaves the column empty; fill it once.
+      const login = githubLoginOf(current);
+      if (!data.github_username && login) {
+        const { data: synced } = await supabase
+          .from('profiles')
+          .update({ github_username: login })
+          .eq('id', current.id)
+          .select('*')
+          .maybeSingle();
+        setProfileState({ userId: current.id, profile: synced ?? data });
+        return;
       }
-    } catch (err) {
-      console.error('Sign in failed:', err);
-      alert(`Login error: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      setProfileState({ userId: current.id, profile: data });
+      return;
     }
-  };
 
-  const signOut = async () => {
-    try {
-      await supabase.auth.signOut();
-      setUser(null);
-      setProfile(null);
-    } catch (err) {
-      console.error('Sign out error:', err);
-    }
-  };
+    // The signup trigger can miss users created before it existed. Tracked
+    // issues reference profiles(id), so create the row now.
+    const { data: created } = await supabase.from('profiles').upsert(profileSeed(current)).select('*').maybeSingle();
+    setProfileState({ userId: current.id, profile: created ?? null });
+  }, []);
 
-  const value = useMemo(() => ({
-    user,
-    profile,
-    loading,
-    signInWithGitHub,
-    signOut,
-  }), [user, profile, loading]);
+  const userRef = useRef<User | null>(null);
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
+  const userId = user?.id ?? null;
+  useEffect(() => {
+    const current = userRef.current;
+    if (!userId || !current) return;
+    loadProfile(current).catch(() => setProfileState({ userId, profile: null }));
+  }, [userId, loadProfile]);
+
+  const profile = user && profileState?.userId === user.id ? profileState.profile : null;
+  const profileReady = !loading && (!user || profileState?.userId === user.id);
+
+  const signIn = useCallback(
+    async (provider: OAuthProvider, next?: string) => {
+      if (!configured) {
+        toast('Sign-in is not configured for this deployment.', { tone: 'error' });
+        return false;
+      }
+      const destination = next ?? `${window.location.pathname}${window.location.search}`;
+      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(
+        destination === '/' ? '/dashboard' : destination
+      )}`;
+      const { error } = await createClient().auth.signInWithOAuth({
+        provider,
+        // Let people with several Google accounts pick one instead of reusing the last.
+        options: { redirectTo, queryParams: provider === 'google' ? { prompt: 'select_account' } : undefined },
+      });
+      if (error) toast(`Couldn't start ${PROVIDER_LABEL[provider]} sign-in: ${error.message}`, { tone: 'error' });
+      return !error;
+    },
+    [configured, toast]
   );
+
+  const signOut = useCallback(async () => {
+    if (!configured) return;
+    const { error } = await createClient().auth.signOut();
+    if (error) {
+      toast(`Couldn't sign out: ${error.message}`, { tone: 'error' });
+      return;
+    }
+    setUser(null);
+    toast('Signed out');
+  }, [configured, toast]);
+
+  const refreshProfile = useCallback(async () => {
+    if (user) await loadProfile(user);
+  }, [user, loadProfile]);
+
+  const updateProfile = useCallback(
+    async (patch: ProfileUpdate) => {
+      if (!user) return { error: 'Sign in to save your profile.' };
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('profiles')
+        .upsert({ ...profileSeed(user), ...profile, ...patch, id: user.id })
+        .select('*')
+        .maybeSingle();
+      if (error) return { error: error.message };
+      setProfileState({ userId: user.id, profile: data ?? null });
+      return { error: null };
+    },
+    [user, profile]
+  );
+
+  const githubLogin = profile?.github_username || githubLoginOf(user);
+
+  const value = useMemo<AuthContextType>(
+    () => ({ user, profile, githubLogin, loading, profileReady, configured, signIn, signOut, refreshProfile, updateProfile }),
+    [user, profile, githubLogin, loading, profileReady, configured, signIn, signOut, refreshProfile, updateProfile]
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

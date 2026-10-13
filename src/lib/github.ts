@@ -1,402 +1,233 @@
-import {
-  Repository,
-  Issue,
-  SearchResponse,
-  RepositoryFilters,
-  IssueFilters,
-  CONTRIBUTION_LABELS,
-} from '@/types';
+import 'server-only';
+import type { Issue, Repository, SearchResponse } from '@/types';
+import { buildIssueQuery } from './issue-query';
 
-const GITHUB_API_BASE = 'https://api.github.com';
+const GITHUB_API = 'https://api.github.com';
 
-// Get headers for GitHub API requests
-function getHeaders(): HeadersInit {
-  const headers: HeadersInit = {
-    Accept: 'application/vnd.github+json',
+export class GitHubError extends Error {
+  constructor(
+    public status: number,
+    message: string,
+    public rateLimited = false,
+    /** Epoch milliseconds when the rate limit resets, if known. */
+    public resetAt?: number
+  ) {
+    super(message);
+    this.name = 'GitHubError';
+  }
+}
+
+export function hasGitHubToken() {
+  return Boolean(process.env.GITHUB_TOKEN);
+}
+
+function headers(accept = 'application/vnd.github+json'): HeadersInit {
+  const result: Record<string, string> = {
+    Accept: accept,
     'X-GitHub-Api-Version': '2022-11-28',
+    'User-Agent': 'orion-open-source-hub',
   };
-
-  // Add token if available (for higher rate limits)
-  const token = process.env.GITHUB_TOKEN;
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
-
-  return headers;
+  if (process.env.GITHUB_TOKEN) result.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
+  return result;
 }
 
-// Search repositories with filters
-export async function searchRepositories(
-  filters: RepositoryFilters
-): Promise<SearchResponse<Repository>> {
-  const {
-    query = '',
-    language,
-    minStars = 0,
-    topics = [],
-    sort = 'stars',
-    order = 'desc',
-    page = 1,
-    perPage = 20,
-  } = filters;
-
-  // Build the search query
-  const queryParts: string[] = [];
-
-  if (query) {
-    queryParts.push(query);
-  }
-
-  if (language) {
-    queryParts.push(`language:${language}`);
-  }
-
-  if (minStars > 0) {
-    queryParts.push(`stars:>=${minStars}`);
-  }
-
-  topics.forEach((topic) => {
-    queryParts.push(`topic:${topic}`);
-  });
-
-  // Default: look for repos with help wanted issues
-  if (queryParts.length === 0) {
-    queryParts.push('help-wanted-issues:>0');
-  }
-
-  const searchQuery = encodeURIComponent(queryParts.join(' '));
-  const url = `${GITHUB_API_BASE}/search/repositories?q=${searchQuery}&sort=${sort}&order=${order}&page=${page}&per_page=${perPage}`;
-
-  const response = await fetch(url, {
-    headers: getHeaders(),
-    next: { revalidate: 300 }, // Cache for 5 minutes
-  });
-
-  if (!response.ok) {
-    throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
-  }
-
-  return response.json();
+interface RequestOptions {
+  /** Seconds to keep the response in the Next.js data cache. */
+  revalidate?: number;
+  accept?: string;
 }
 
-// Search issues with contribution-friendly labels
-export async function searchIssues(
-  filters: IssueFilters
-): Promise<SearchResponse<Issue>> {
-  const {
-    labels = ['good first issue'],
-    language,
-    state = 'open',
-    sort = 'created',
-    order = 'desc',
-    page = 1,
-    perPage = 20,
-  } = filters;
-
-  // Build the search query
-  const queryParts: string[] = ['is:issue', `state:${state}`];
-
-  // Add labels
-  labels.forEach((label) => {
-    queryParts.push(`label:"${label}"`);
-  });
-
-  if (language) {
-    queryParts.push(`language:${language}`);
-  }
-
-  const searchQuery = encodeURIComponent(queryParts.join(' '));
-  const url = `${GITHUB_API_BASE}/search/issues?q=${searchQuery}&sort=${sort}&order=${order}&page=${page}&per_page=${perPage}`;
-
-  const response = await fetch(url, {
-    headers: getHeaders(),
-    next: { revalidate: 300 },
-  });
-
-  if (!response.ok) {
-    throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
-  }
-
-  const data = await response.json();
-  
-  // Filter out pull requests - GitHub's search API can return PRs even with is:issue
-  // PRs have a 'pull_request' key in the response object
-  const filteredItems = data.items?.filter((item: any) => !item.pull_request) || [];
-  
-  return {
-    ...data,
-    items: filteredItems,
-    total_count: filteredItems.length,
-  };
-}
-
-// Get a single repository by owner and name
-export async function getRepository(
-  owner: string,
-  repo: string
-): Promise<Repository> {
-  const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}`;
-
-  const response = await fetch(url, {
-    headers: getHeaders(),
-    next: { revalidate: 600 }, // Cache for 10 minutes
-  });
-
-  if (!response.ok) {
-    throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
-  }
-
-  return response.json();
-}
-
-// Get trending repositories (recently active with good engagement)
-export async function getTrendingRepositories(
-  language?: string,
-  days: number = 7
-): Promise<SearchResponse<Repository>> {
-  const date = new Date();
-  date.setDate(date.getDate() - days);
-  const dateStr = date.toISOString().split('T')[0];
-
-  const queryParts = [
-    `pushed:>=${dateStr}`,
-    'stars:>=100',
-    'help-wanted-issues:>0',
-  ];
-
-  if (language) {
-    queryParts.push(`language:${language}`);
-  }
-
-  const searchQuery = encodeURIComponent(queryParts.join(' '));
-  const url = `${GITHUB_API_BASE}/search/repositories?q=${searchQuery}&sort=stars&order=desc&per_page=12`;
-
-  const response = await fetch(url, {
-    headers: getHeaders(),
-    next: { revalidate: 600 },
-  });
-
-  if (!response.ok) {
-    throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
-  }
-
-  return response.json();
-}
-
-// Get beginner-friendly issues
-export async function getBeginnerIssues(
-  language?: string
-): Promise<SearchResponse<Issue>> {
-  return searchIssues({
-    labels: ['good first issue'],
-    language,
-    state: 'open',
-    sort: 'created',
-    order: 'desc',
-    perPage: 20,
-  });
-}
-
-// Get help wanted issues
-export async function getHelpWantedIssues(
-  language?: string
-): Promise<SearchResponse<Issue>> {
-  return searchIssues({
-    labels: ['help wanted'],
-    language,
-    state: 'open',
-    sort: 'created',
-    order: 'desc',
-    perPage: 20,
-  });
-}
-
-// Calculate match score between a repository and user preferences
-export function calculateMatchScore(
-  repo: Repository,
-  userSkills: string[],
-  userInterests: string[]
-): number {
-  let score = 0;
-  const maxScore = 100;
-
-  // Language match (30 points)
-  if (repo.language && userSkills.some(
-    skill => skill.toLowerCase() === repo.language?.toLowerCase()
-  )) {
-    score += 30;
-  }
-
-  // Topic matches (up to 40 points)
-  const topicMatches = repo.topics.filter(topic =>
-    userInterests.some(interest =>
-      topic.toLowerCase().includes(interest.toLowerCase()) ||
-      interest.toLowerCase().includes(topic.toLowerCase())
-    )
-  );
-  score += Math.min(topicMatches.length * 10, 40);
-
-  // Activity score (up to 20 points)
-  const daysSinceUpdate = Math.floor(
-    (Date.now() - new Date(repo.updated_at).getTime()) / (1000 * 60 * 60 * 24)
-  );
-  if (daysSinceUpdate < 7) score += 20;
-  else if (daysSinceUpdate < 30) score += 15;
-  else if (daysSinceUpdate < 90) score += 10;
-  else if (daysSinceUpdate < 180) score += 5;
-
-  // Open issues bonus (10 points if has contribution opportunities)
-  if (repo.open_issues_count > 0) score += 10;
-
-  return Math.min(score, maxScore);
-}
-
-// Calculate match score for an issue based on resume analysis
-export interface IssueMatchResult {
-  score: number;
-  matchReasons: string[];
-}
-
-export interface ResumeSkills {
-  skills: string[];
-  technologies: string[];
-  interests: string[];
-  experienceLevel: 'beginner' | 'intermediate' | 'advanced';
-}
-
-export function calculateIssueMatchScore(
-  issue: Issue,
-  resumeSkills: ResumeSkills,
-  repoLanguage?: string | null
-): IssueMatchResult {
-  let score = 0;
-  const matchReasons: string[] = [];
-  const labels = issue.labels.map(l => l.name.toLowerCase());
-  
-  // 1. Language match (30 points)
-  if (repoLanguage && resumeSkills.skills.some(
-    skill => skill.toLowerCase() === repoLanguage.toLowerCase()
-  )) {
-    score += 30;
-    matchReasons.push(`Matches your ${repoLanguage} skills`);
-  }
-  
-  // 2. Experience level match (25 points)
-  const beginnerLabels = ['good first issue', 'beginner', 'easy', 'first-timers-only', 'starter'];
-  const intermediateLabels = ['help wanted', 'medium', 'intermediate'];
-  const advancedLabels = ['advanced', 'complex', 'expert'];
-  
-  const hasBeginnerLabel = labels.some(l => beginnerLabels.some(bl => l.includes(bl)));
-  const hasIntermediateLabel = labels.some(l => intermediateLabels.some(il => l.includes(il)));
-  const hasAdvancedLabel = labels.some(l => advancedLabels.some(al => l.includes(al)));
-  
-  if (resumeSkills.experienceLevel === 'beginner' && hasBeginnerLabel) {
-    score += 25;
-    matchReasons.push('Perfect for beginners');
-  } else if (resumeSkills.experienceLevel === 'intermediate' && (hasIntermediateLabel || hasBeginnerLabel)) {
-    score += 20;
-    matchReasons.push('Matches your experience level');
-  } else if (resumeSkills.experienceLevel === 'advanced') {
-    score += 15; // Advanced users can handle anything
-    if (hasAdvancedLabel) {
-      score += 10;
-      matchReasons.push('Challenging issue for senior devs');
-    }
-  }
-  
-  // 3. Technology in labels/title (25 points)
-  const issueText = (issue.title + ' ' + labels.join(' ')).toLowerCase();
-  const techMatches = resumeSkills.technologies.filter(tech => 
-    issueText.includes(tech.toLowerCase())
-  );
-  if (techMatches.length > 0) {
-    score += Math.min(techMatches.length * 10, 25);
-    matchReasons.push(`Uses ${techMatches.slice(0, 2).join(', ')}`);
-  }
-  
-  // 4. Interest area match (20 points)
-  const interestKeywords: Record<string, string[]> = {
-    'web': ['frontend', 'ui', 'css', 'html', 'website'],
-    'backend': ['api', 'server', 'database', 'backend'],
-    'mobile': ['android', 'ios', 'mobile', 'react-native', 'flutter'],
-    'devops': ['docker', 'ci', 'cd', 'deploy', 'kubernetes', 'infra'],
-    'machine-learning': ['ml', 'ai', 'model', 'training', 'prediction'],
-    'documentation': ['docs', 'documentation', 'readme', 'guide'],
-    'testing': ['test', 'testing', 'coverage', 'e2e', 'unit'],
-  };
-  
-  for (const interest of resumeSkills.interests) {
-    const keywords = interestKeywords[interest] || [interest];
-    if (keywords.some(kw => issueText.includes(kw))) {
-      score += 20;
-      matchReasons.push(`Related to your interest in ${interest}`);
-      break;
-    }
-  }
-  
-  return {
-    score: Math.min(score, 100),
-    matchReasons: matchReasons.slice(0, 3), // Max 3 reasons
-  };
-}
-
-// Fetch global GitHub stats (Real-time)
-export async function getGlobalStats() {
+/** A cached GET against the GitHub REST API; errors arrive as GitHubError. */
+export async function request<T>(path: string, { revalidate = 300, accept }: RequestOptions = {}): Promise<T> {
+  let response: Response;
   try {
-    const [issuesRes, prsRes, usersRes] = await Promise.all([
-      // Issues
-      fetch(`${GITHUB_API_BASE}/search/issues?q=is:issue+is:open&per_page=1`, {
-        headers: getHeaders(),
-        next: { revalidate: 3600 } // Cache for 1 hour
-      }),
-      // PRs
-      fetch(`${GITHUB_API_BASE}/search/issues?q=is:pr+is:open&per_page=1`, {
-        headers: getHeaders(),
-        next: { revalidate: 3600 }
-      }),
-       // Users - explicit type:user search
-      fetch(`${GITHUB_API_BASE}/search/users?q=type:user&per_page=1`, {
-        headers: getHeaders(),
-        next: { revalidate: 3600 }
-      })
-    ]);
-
-    const issuesData = await issuesRes.json();
-    const prsData = await prsRes.json();
-    const usersData = await usersRes.json();
-
-    return {
-      totalIssues: issuesData.total_count || 0,
-      totalPRs: prsData.total_count || 0,
-      totalUsers: usersData.total_count || 0,
-      totalBounties: 500000 // Still estimated/hardcoded as there's no single API for this
-    };
-  } catch (error) {
-    console.error('Error fetching global stats:', error);
-    // Fallback to average known numbers if API fails
-    return {
-      totalIssues: 20000000,
-      totalPRs: 5000000,
-      totalUsers: 100000000,
-      totalBounties: 500000
-    };
-  }
-}
-
-// Get trending developers (users with high followers)
-export async function getTrendingDevelopers(limit: number = 6): Promise<any[]> {
-  try {
-    const url = `${GITHUB_API_BASE}/search/users?q=type:user+followers:>500&sort=followers&order=desc&per_page=${limit}`;
-    const response = await fetch(url, {
-      headers: getHeaders(),
-      next: { revalidate: 3600 },
+    response = await fetch(`${GITHUB_API}${path}`, {
+      headers: headers(accept),
+      next: { revalidate },
     });
-
-    if (!response.ok) return [];
-
-    const data = await response.json();
-    return data.items || [];
   } catch {
-    return [];
+    throw new GitHubError(503, 'GitHub could not be reached.');
   }
+
+  if (response.ok) return (await response.json()) as T;
+
+  const remaining = response.headers.get('x-ratelimit-remaining');
+  const reset = Number(response.headers.get('x-ratelimit-reset'));
+  const retryAfter = Number(response.headers.get('retry-after'));
+  const rateLimited =
+    response.status === 429 || (response.status === 403 && (remaining === '0' || Number.isFinite(retryAfter)));
+
+  if (rateLimited) {
+    const resetAt = Number.isFinite(reset) && reset > 0 ? reset * 1000 : Date.now() + (retryAfter || 60) * 1000;
+    throw new GitHubError(429, 'GitHub rate limit reached.', true, resetAt);
+  }
+  if (response.status === 404) throw new GitHubError(404, 'Not found on GitHub.');
+  if (response.status === 422) throw new GitHubError(422, 'GitHub rejected the search query.');
+  throw new GitHubError(response.status >= 500 ? 502 : response.status, `GitHub returned ${response.status}.`);
+}
+
+/** Human-friendly description of when a rate limit lifts. */
+export function describeReset(resetAt?: number) {
+  if (!resetAt) return 'in a few minutes';
+  const minutes = Math.max(1, Math.ceil((resetAt - Date.now()) / 60000));
+  return minutes === 1 ? 'in about a minute' : `in about ${minutes} minutes`;
+}
+
+/* ------------------------------------------------------------------ */
+/* Search                                                              */
+/* ------------------------------------------------------------------ */
+
+export interface SearchOptions {
+  sort?: string;
+  order?: 'asc' | 'desc';
+  perPage?: number;
+  page?: number;
+  revalidate?: number;
+  /** Issue searches drop pull requests by default; set for `is:pr` queries. */
+  includePullRequests?: boolean;
+}
+
+function searchParams(q: string, { sort, order = 'desc', perPage = 20, page = 1 }: SearchOptions) {
+  const params = new URLSearchParams({ q, per_page: String(perPage), page: String(page) });
+  if (sort) {
+    params.set('sort', sort);
+    params.set('order', order);
+  }
+  return params.toString();
+}
+
+export async function searchIssues(q: string, options: SearchOptions = {}): Promise<SearchResponse<Issue>> {
+  const data = await request<SearchResponse<Issue & { pull_request?: unknown }>>(
+    `/search/issues?${searchParams(q, options)}`,
+    { revalidate: options.revalidate ?? 300 }
+  );
+  const items = options.includePullRequests ? data.items ?? [] : (data.items ?? []).filter(item => !item.pull_request);
+  return { total_count: data.total_count ?? items.length, incomplete_results: data.incomplete_results, items };
+}
+
+export async function searchRepositories(q: string, options: SearchOptions = {}): Promise<SearchResponse<Repository>> {
+  return request<SearchResponse<Repository>>(`/search/repositories?${searchParams(q, options)}`, {
+    revalidate: options.revalidate ?? 300,
+  });
+}
+
+/** Total result count for an issue query, or null when GitHub is unavailable. */
+/**
+ * Live data for many repositories in a few searches (40 repo: qualifiers per
+ * query, cached six hours). Missing repositories are simply absent; rate
+ * limits are reported, not thrown.
+ */
+export async function fetchLiveRepos(slugs: string[]): Promise<{ repos: Map<string, Repository>; rateLimited: boolean }> {
+  const repos = new Map<string, Repository>();
+  let rateLimited = false;
+  const BATCH = 40;
+
+  for (let i = 0; i < slugs.length; i += BATCH) {
+    const batch = slugs.slice(i, i + BATCH);
+    try {
+      const result = await searchRepositories(batch.map(slug => `repo:${slug}`).join(' '), {
+        perPage: 100,
+        revalidate: 6 * 3600,
+      });
+      for (const repo of result.items) repos.set(repo.full_name.toLowerCase(), repo);
+    } catch (err) {
+      if (err instanceof GitHubError && err.rateLimited) rateLimited = true;
+    }
+  }
+
+  return { repos, rateLimited };
+}
+
+export async function countIssues(q: string, revalidate = 900): Promise<number | null> {
+  try {
+    const data = await request<{ total_count: number }>(`/search/issues?${searchParams(q, { perPage: 1 })}`, {
+      revalidate,
+    });
+    return data.total_count ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export { buildIssueQuery, buildRepoQuery, ISSUE_PRESETS, ISSUE_SORTS } from './issue-query';
+export type { IssuePreset, IssueQuery, IssueSort, RepoQuery } from './issue-query';
+
+/* ------------------------------------------------------------------ */
+/* Lookups                                                             */
+/* ------------------------------------------------------------------ */
+
+export interface IssueDetail extends Issue {
+  body_html?: string;
+  body_text?: string;
+  pull_request?: { html_url: string };
+  state_reason?: string | null;
+  assignees?: Array<{ login: string; avatar_url: string; html_url: string }>;
+  author_association?: string;
+  closed_at?: string | null;
+  locked?: boolean;
+}
+
+export async function getIssue(owner: string, repo: string, number: number): Promise<IssueDetail> {
+  return request<IssueDetail>(`/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/issues/${number}`, {
+    revalidate: 300,
+    accept: 'application/vnd.github.full+json',
+  });
+}
+
+export async function getRepository(owner: string, repo: string): Promise<Repository> {
+  return request<Repository>(`/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`, {
+    revalidate: 3600,
+  });
+}
+
+export interface GitHubUser {
+  login: string;
+  name: string | null;
+  avatar_url: string;
+}
+
+/** Public profile of a GitHub account; throws a 404 GitHubError when it doesn't exist. */
+export async function getUser(username: string): Promise<GitHubUser> {
+  return request<GitHubUser>(`/users/${encodeURIComponent(username)}`, { revalidate: 86400 });
+}
+
+/** Repositories pushed this week that are asking for help. */
+export async function getTrendingRepositories(perPage = 12): Promise<Repository[]> {
+  const since = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10);
+  const data = await searchRepositories(`pushed:>=${since} stars:>=500 help-wanted-issues:>0 archived:false`, {
+    sort: 'stars',
+    perPage,
+    revalidate: 1800,
+  });
+  return data.items;
+}
+
+/** A repository's README as raw markdown. */
+export async function getReadmeMarkdown(fullName: string, revalidate = 21600): Promise<string> {
+  let response: Response;
+  try {
+    response = await fetch(`${GITHUB_API}/repos/${fullName}/readme`, {
+      headers: headers('application/vnd.github.raw'),
+      next: { revalidate },
+    });
+  } catch {
+    throw new GitHubError(503, 'GitHub could not be reached.');
+  }
+  if (!response.ok) throw new GitHubError(response.status === 404 ? 404 : 502, `GitHub returned ${response.status}.`);
+  return response.text();
+}
+
+export async function getGoodFirstIssues(perPage = 12, language?: string): Promise<SearchResponse<Issue>> {
+  return searchIssues(buildIssueQuery({ preset: 'good-first', language }), {
+    sort: 'created',
+    perPage,
+    revalidate: 600,
+  });
+}
+
+/** Repository full name ("owner/repo") from an API repository_url or html_url. */
+export function repoFullName(url: string): string {
+  // API URLs (api.github.com/repos/o/r) first: they also contain "github.com/".
+  const match = url.match(/\/repos\/([^/]+)\/([^/#?]+)/) ?? url.match(/github\.com\/([^/]+)\/([^/#?]+)/);
+  return match ? `${match[1]}/${match[2]}` : '';
 }

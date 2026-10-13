@@ -1,234 +1,250 @@
-.page {
-  padding: var(--space-lg);
-  padding-bottom: var(--space-3xl);
-}
-
-.container {
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.header {
-  text-align: center;
-  margin-bottom: var(--space-2xl);
-}
-
-.header h1 {
-  font-size: 2rem;
-  margin-bottom: var(--space-sm);
-}
-
-.header p {
-  font-size: 1.125rem;
-  color: var(--color-text-secondary);
-}
-
-.loading {
-  text-align: center;
-  padding: var(--space-3xl);
-  color: var(--color-text-tertiary);
-}
-
-.section {
-  margin-bottom: var(--space-2xl);
-}
-
-.sectionTitle {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: var(--space-xs);
-}
-
-.sectionDesc {
-  color: var(--color-text-secondary);
-  margin-bottom: var(--space-lg);
-}
-
-/* Experience Level */
-.experienceGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-md);
-}
-
-.experienceCard {
+.layout {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: var(--space-xl);
-  background: var(--color-bg-secondary);
-  border: 2px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  cursor: pointer;
-  transition: all var(--transition-base);
+  gap: var(--s-10);
+  max-width: 880px;
 }
 
-.experienceCard:hover {
-  border-color: var(--color-border-hover);
-  transform: translateY(-2px);
+.panelBody {
+  padding: 0 var(--s-6);
 }
 
-.experienceCardActive {
-  border-color: var(--color-primary);
-  background: var(--color-primary-light);
-}
-
-.experienceIcon {
-  font-size: 2.5rem;
-  margin-bottom: var(--space-sm);
-}
-
-.experienceCard h3 {
-  font-size: 1rem;
-  margin-bottom: var(--space-xs);
-}
-
-.experienceCard p {
-  font-size: 0.8125rem;
-  color: var(--color-text-tertiary);
-}
-
-/* Skills Grid */
-.skillGrid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-sm);
-}
-
-.skillBtn {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  padding: var(--space-sm) var(--space-md);
-  font-size: 0.9375rem;
-  font-weight: 500;
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  color: var(--color-text-secondary);
-}
-
-.skillBtn:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-}
-
-.skillBtnActive {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: white;
-}
-
-.skillBtnActive:hover {
-  background: var(--color-primary-hover);
-}
-
-/* Topics Grid */
-.topicGrid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-sm);
-}
-
-.topicBtn {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  padding: var(--space-sm) var(--space-md);
-  font-size: 0.875rem;
-  font-weight: 500;
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  color: var(--color-text-secondary);
-}
-
-.topicBtn:hover {
-  border-color: var(--color-secondary);
-  color: var(--color-secondary);
-}
-
-.topicBtnActive {
-  background: var(--color-secondary);
-  border-color: var(--color-secondary);
-  color: white;
-}
-
-.topicBtnActive:hover {
-  background: var(--color-secondary-hover);
-}
-
-.checkmark {
-  font-size: 0.75rem;
-}
-
-/* Summary */
-.summary {
+/* Save bar: rests at the bottom of the panel, sticks to the viewport while the form scrolls. */
+.footer {
   position: sticky;
-  bottom: var(--space-lg);
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-2xl);
-  padding: var(--space-lg);
-  box-shadow: var(--shadow-xl);
-}
-
-.summaryContent {
+  bottom: 0;
+  z-index: 5;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-lg);
+  flex-wrap: wrap;
+  gap: var(--s-3) var(--s-4);
+  min-height: 57px;
+  padding: var(--s-3) var(--s-6);
+  padding-bottom: max(var(--s-3), env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line);
+  border-radius: 0 0 var(--r) var(--r);
+  background: var(--bg);
 }
 
-.summaryStats {
+.statusArea {
   display: flex;
-  gap: var(--space-xl);
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s-1) var(--s-2);
+  min-width: 0;
 }
 
-.statItem {
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  color: var(--fg-3);
+  font-size: var(--text-caption);
+  line-height: 1.5;
+}
+
+.dirtyDot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--r-full);
+  background: var(--status-working);
+  flex-shrink: 0;
+}
+
+.savedIcon {
+  color: var(--accent);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin-left: auto;
+}
+
+.import {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--s-4) var(--s-6);
+  padding-top: var(--s-6);
+  border-top: 1px solid var(--line);
+}
+
+.importText {
   display: flex;
   flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.importTitle {
+  font-size: var(--text-ui);
+  font-weight: 500;
+  line-height: 1.43;
+}
+
+.importBody {
+  color: var(--fg-3);
+  font-size: var(--text-caption);
+  line-height: 1.5;
+}
+
+/* GitHub account: one row inside a panel. */
+.account {
+  display: flex;
   align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--s-4) var(--s-6);
+  padding: var(--s-5) var(--s-6);
 }
 
-.statNumber {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--color-text-primary);
+.accountText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 280px;
+  min-width: 0;
 }
 
-.statLabel {
-  font-size: 0.75rem;
-  color: var(--color-text-tertiary);
+.accountTitle {
+  font-size: var(--text-ui);
+  font-weight: 500;
+  line-height: 1.43;
 }
 
-.saveBtn {
-  min-width: 180px;
+.accountBody {
+  color: var(--fg-3);
+  font-size: var(--text-caption);
+  line-height: 1.5;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .experienceGrid {
-    grid-template-columns: 1fr;
+.accountLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  color: var(--fg);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+}
+
+.accountLink:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.accountForm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+  flex: 0 1 340px;
+}
+
+.accountInput.accountInput {
+  flex: 1 1 180px;
+}
+
+.accountError {
+  flex-basis: 100%;
+  color: var(--status-danger);
+  font-size: var(--text-caption);
+}
+
+@media (max-width: 640px) {
+  .layout {
+    gap: var(--s-8);
   }
 
-  .summaryContent {
-    flex-direction: column;
+  .panelBody {
+    padding: 0 var(--s-4);
   }
 
-  .summaryStats {
+  .account {
+    padding: var(--s-4);
+  }
+
+  .accountForm {
+    flex-basis: 100%;
+  }
+
+  .footer {
+    padding-inline: var(--s-4);
+  }
+
+  .actions {
     width: 100%;
-    justify-content: space-around;
+    justify-content: flex-end;
   }
+}
 
-  .saveBtn {
-    width: 100%;
-  }
+/* ---------- Profile banner picker ---------- */
+
+.banners {
+  display: grid;
+  gap: var(--s-2);
+  margin: 0;
+  padding: var(--s-4) var(--s-5) var(--s-5);
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+
+.bannersLegend {
+  float: left;
+  width: 100%;
+  margin-bottom: var(--s-1);
+  color: var(--fg);
+  font-size: var(--text-ui);
+  font-weight: 500;
+}
+
+.bannerOptions {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--s-3);
+}
+
+.bannerOption {
+  display: grid;
+  gap: var(--s-2);
+  color: var(--fg-2);
+  font-size: var(--text-caption);
+  cursor: pointer;
+}
+
+.bannerOption input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.bannerPreview,
+.bannerNone {
+  height: 48px;
+  border-radius: var(--r);
+}
+
+.bannerNone {
+  display: block;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+/* Graphite: a selected control gets the Steel Border. */
+.bannerOption:has(input:checked) .bannerPreview,
+.bannerOption:has(input:checked) .bannerNone {
+  box-shadow: inset 0 0 0 1px var(--line-strong), 0 0 0 1px var(--line-strong);
+}
+
+.bannerOption:has(input:checked) {
+  color: var(--fg);
+}
+
+.bannerOption:has(input:focus-visible) .bannerPreview,
+.bannerOption:has(input:focus-visible) .bannerNone {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
 }

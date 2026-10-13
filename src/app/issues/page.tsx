@@ -1,15 +1,17 @@
+import type { Metadata } from 'next';
 import { Suspense } from 'react';
-import IssuesClient from './IssuesClient';
+import TrackerClient from './TrackerClient';
 
-export const metadata = {
-  title: 'My Issues | ContributeHub',
-  description: 'Track and manage your open source issues',
+export const metadata: Metadata = {
+  title: 'Tracker',
+  description: 'Track the open source issues you are working on, from saved to merged.',
+  robots: { index: false },
 };
 
-export default function IssuesPage() {
+export default function TrackerPage() {
   return (
-    <Suspense fallback={<div style={{ padding: '2rem', color: '#b3b3b3' }}>Loading...</div>}>
-      <IssuesClient />
+    <Suspense fallback={null}>
+      <TrackerClient />
     </Suspense>
   );
 }

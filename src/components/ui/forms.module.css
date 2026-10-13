@@ -1,0 +1,288 @@
+/* ---------- Field ---------- */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.label {
+  color: var(--fg);
+  font-size: var(--text-caption);
+  font-weight: 500;
+}
+
+.hint {
+  color: var(--fg-3);
+  font-size: var(--text-caption);
+  line-height: 1.5;
+}
+
+.error {
+  color: var(--status-danger);
+  font-size: var(--text-caption);
+}
+
+/* ---------- Input shell (input, select, textarea, chip input) ---------- */
+
+.control {
+  --h: 32px;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--h);
+  padding: 0 10px;
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+  color: var(--fg);
+  font-size: var(--text-ui);
+  transition: box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.control:hover {
+  box-shadow: inset 0 0 0 1px var(--fg-4);
+}
+
+.control:focus-within {
+  box-shadow:
+    inset 0 0 0 1px var(--fg),
+    0 0 0 3px color-mix(in srgb, var(--fg) 10%, transparent);
+}
+
+.controlSm {
+  --h: 28px;
+  font-size: var(--text-caption);
+}
+
+.controlLg {
+  --h: 40px;
+}
+
+.invalid {
+  box-shadow: inset 0 0 0 1px var(--status-danger);
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  height: calc(var(--h) - 2px);
+  border: none;
+  outline: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+.search::-webkit-search-cancel-button,
+.search::-webkit-search-decoration {
+  display: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--fg-4);
+}
+
+.icon {
+  display: inline-flex;
+  color: var(--fg-4);
+  flex-shrink: 0;
+}
+
+.clear {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--r-sm);
+  color: var(--fg-4);
+  flex-shrink: 0;
+}
+
+.clear:hover {
+  background: var(--surface-2);
+  color: var(--fg);
+}
+
+/* ---------- Select ---------- */
+
+.selectWrap {
+  position: relative;
+  padding: 0;
+}
+
+.select {
+  appearance: none;
+  width: 100%;
+  height: calc(var(--h) - 0px);
+  padding: 0 30px 0 10px;
+  border: none;
+  outline: none;
+  border-radius: var(--r);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.select option {
+  background: var(--surface);
+  color: var(--fg);
+}
+
+.selectChevron {
+  position: absolute;
+  right: 9px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--fg-3);
+  pointer-events: none;
+}
+
+/* ---------- Textarea ---------- */
+
+.textareaWrap {
+  align-items: stretch;
+  padding: 8px 10px;
+}
+
+.textarea {
+  flex: 1;
+  min-height: 96px;
+  border: none;
+  outline: none;
+  resize: vertical;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: 1.55;
+}
+
+/* ---------- Chip input ---------- */
+
+.chips {
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 4px 6px;
+  cursor: text;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+  padding: 0 4px 0 8px;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--fg);
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+}
+
+.chipRemove {
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  color: var(--fg-3);
+}
+
+.chipRemove:hover {
+  background: var(--surface-3);
+  color: var(--fg);
+}
+
+.chipInput {
+  flex: 1;
+  min-width: 120px;
+  height: 22px;
+  padding: 0 4px;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: var(--text-caption);
+}
+
+.chipInput::placeholder {
+  color: var(--fg-4);
+}
+
+/* ---------- Checkbox ---------- */
+
+.checkboxLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--fg-2);
+  font-size: var(--text-ui);
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox {
+  appearance: none;
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.checkbox::after {
+  content: '';
+  width: 9px;
+  height: 5px;
+  margin-top: -2px;
+  border-left: 1.6px solid var(--on-primary);
+  border-bottom: 1.6px solid var(--on-primary);
+  transform: rotate(-45deg) scale(0);
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.checkbox:checked {
+  background: var(--primary);
+  box-shadow: none;
+}
+
+.checkbox:checked::after {
+  transform: rotate(-45deg) scale(1);
+}
+
+.checkbox:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* ---------- Toolbar (filter rows) ---------- */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.toolbarGrow {
+  flex: 1 1 260px;
+  min-width: 200px;
+}
+
+.toolbarSpacer {
+  flex: 1;
+}

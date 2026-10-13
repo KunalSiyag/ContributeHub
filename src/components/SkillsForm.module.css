@@ -1,0 +1,98 @@
+/* Skill profile editor: a label column beside the controls, groups split by hairlines.
+   Horizontal padding comes from the container (usually a panel). */
+
+.form {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+}
+
+.group {
+  display: grid;
+  grid-template-columns: minmax(0, 200px) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--s-3) var(--s-8);
+  padding: var(--s-6) 0;
+}
+
+.group + .group {
+  border-top: 1px solid var(--line);
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  min-width: 0;
+  padding-top: var(--s-1);
+}
+
+.labelRow {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+}
+
+.label {
+  color: var(--fg);
+  font-size: var(--text-ui);
+  font-weight: 500;
+  line-height: 1.43;
+}
+
+.count {
+  color: var(--fg-4);
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.hint {
+  max-width: 34ch;
+  color: var(--fg-3);
+  font-size: var(--text-caption);
+  line-height: 1.5;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+  min-width: 0;
+}
+
+.level {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-2);
+}
+
+.levelNote {
+  color: var(--fg-3);
+  font-size: var(--text-caption);
+  line-height: 1.5;
+}
+
+.skeletonPills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+@container (max-width: 620px) {
+  .group {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--s-4);
+    padding: var(--s-5) 0;
+  }
+
+  .head {
+    padding-top: 0;
+  }
+
+  .hint {
+    max-width: none;
+  }
+}

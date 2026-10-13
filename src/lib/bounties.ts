@@ -1,139 +1,161 @@
-// Bounty API Integration
-// Aggregates bounties from multiple sources
+// Bounty parsing and stats. Pure functions only (unit tested); fetching
+// lives in bounties.server.ts.
 
 export interface BountyIssue {
   id: string;
+  number: number;
   title: string;
   repo: string;
   url: string;
+  /** Display amount, e.g. "$1,340", or "Bounty" when no amount is stated. */
   bountyAmount: string;
-  bountyValue: number; // numeric for sorting
-  source: 'github' | 'gitcoin' | 'algora' | 'other';
+  /** Numeric amount in USD for sorting; 0 when unknown. */
+  bountyValue: number;
+  source: 'github' | 'algora';
   labels: string[];
   createdAt: string;
+  updatedAt?: string;
+  assignees: number;
+  comments: number;
+  /** GitHub stars of the repository that pays; undefined when unknown. */
+  repoStars?: number;
 }
 
-export type BountySource = 'all' | 'github' | 'gitcoin' | 'algora';
+export type BountySource = 'all' | 'github' | 'algora';
+export const BOUNTY_SOURCES: readonly BountySource[] = ['all', 'github', 'algora'];
 
-// Parse bounty amount from GitHub issue labels
-function parseBountyFromLabels(labels: string[]): { amount: string; value: number } | null {
-  for (const label of labels) {
-    const lower = label.toLowerCase();
-    
-    // Match patterns like "$100", "bounty: $200", "💰 $500"
-    const match = lower.match(/\$(\d+(?:,\d{3})*(?:\.\d{2})?)/);
+const AMOUNT_PATTERNS = [/\$\s?([\d][\d,]*(?:\.\d{2})?)/, /([\d][\d,]*)\s?(?:usd|usdc|usdt)\b/i];
+
+export function parseBountyAmount(text: string): { amount: string; value: number } | null {
+  if (!text) return null;
+  for (const pattern of AMOUNT_PATTERNS) {
+    const match = text.match(pattern);
     if (match) {
-      const value = parseFloat(match[1].replace(',', ''));
-      return { amount: `$${match[1]}`, value };
-    }
-    
-    // Match patterns like "100 USD", "50 USDC"
-    const usdMatch = lower.match(/(\d+(?:,\d{3})*)\s*(?:usd|usdc|usdt)/);
-    if (usdMatch) {
-      const value = parseFloat(usdMatch[1].replace(',', ''));
-      return { amount: `$${usdMatch[1]}`, value };
+      const value = parseFloat(match[1].replace(/,/g, ''));
+      if (!isNaN(value) && value >= 5 && value <= 100_000) {
+        return { amount: `$${Number(value).toLocaleString('en-US')}`, value };
+      }
     }
   }
   return null;
 }
 
-// Fetch bounty issues from GitHub (issues with bounty labels)
-export async function fetchGitHubBounties(limit: number = 20): Promise<BountyIssue[]> {
-  const token = process.env.GITHUB_TOKEN;
-  
-  // Search for issues with bounty-related labels
-  const query = encodeURIComponent('label:bounty,label:"💰",label:reward is:issue is:open');
-  
-  try {
-    const response = await fetch(
-      `https://api.github.com/search/issues?q=${query}&sort=created&order=desc&per_page=${limit}`,
-      {
-        headers: {
-          'Accept': 'application/vnd.github+json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-        },
-        next: { revalidate: 3600 }, // Cache for 1 hour
-      }
-    );
-
-    if (!response.ok) {
-      console.error('GitHub bounty fetch failed:', response.status);
-      return [];
-    }
-
-    const data = await response.json();
-    
-    return (data.items || []).map((issue: any) => {
-      const labels = issue.labels.map((l: any) => l.name);
-      const bounty = parseBountyFromLabels(labels);
-      const repoUrl = issue.repository_url;
-      const repoParts = repoUrl.split('/');
-      const repo = `${repoParts[repoParts.length - 2]}/${repoParts[repoParts.length - 1]}`;
-
-      return {
-        id: `gh-${issue.id}`,
-        title: issue.title,
-        repo,
-        url: issue.html_url,
-        bountyAmount: bounty?.amount || 'Bounty',
-        bountyValue: bounty?.value || 0,
-        source: 'github' as const,
-        labels,
-        createdAt: issue.created_at,
-      };
-    });
-  } catch (err) {
-    console.error('Error fetching GitHub bounties:', err);
-    return [];
-  }
+export interface RawSearchIssue {
+  id: number;
+  number: number;
+  title: string;
+  body: string | null;
+  html_url: string;
+  repository_url: string;
+  labels: Array<{ name: string }>;
+  created_at: string;
+  updated_at: string;
+  comments: number;
+  assignees?: unknown[];
+  pull_request?: unknown;
 }
 
-// Mock Gitcoin bounties (would integrate with Gitcoin API in production)
-export async function fetchGitcoinBounties(limit: number = 10): Promise<BountyIssue[]> {
-  // Gitcoin API integration would go here
-  // For now, return sample data
-  return [
-    {
-      id: 'gc-1',
-      title: 'Implement ZK proof verification',
-      repo: 'gitcoin/passport',
-      url: 'https://gitcoin.co/issue/example-1',
-      bountyAmount: '$500',
-      bountyValue: 500,
-      source: 'gitcoin',
-      labels: ['solidity', 'zk-proofs'],
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: 'gc-2',
-      title: 'Add ENS integration',
-      repo: 'gitcoin/web',
-      url: 'https://gitcoin.co/issue/example-2',
-      bountyAmount: '$300',
-      bountyValue: 300,
-      source: 'gitcoin',
-      labels: ['web3', 'ens'],
-      createdAt: new Date().toISOString(),
-    },
-  ];
+function repoFromUrl(repositoryUrl: string): string {
+  const parts = repositoryUrl.split('/');
+  return `${parts[parts.length - 2]}/${parts[parts.length - 1]}`;
 }
 
-// Aggregate all bounty sources
-export async function fetchAllBounties(
-  source: BountySource = 'all',
-  limit: number = 20
-): Promise<BountyIssue[]> {
-  const bounties: BountyIssue[] = [];
+/** Turn a GitHub search hit into a bounty, or null if nothing marks it as one. */
+export function normalizeBountyIssue(issue: RawSearchIssue): BountyIssue | null {
+  const labels = issue.labels?.map(l => l.name) || [];
+  const labelText = labels.join(' ');
+  const body = issue.body?.slice(0, 800) || '';
+  const searchableText = `${issue.title} ${labelText} ${body}`;
 
-  if (source === 'all' || source === 'github') {
-    const ghBounties = await fetchGitHubBounties(limit);
-    bounties.push(...ghBounties);
+  const parsed = parseBountyAmount(labelText) || parseBountyAmount(issue.title) || parseBountyAmount(body);
+  const hasBountyLabel = /bounty|\u{1F4B0}|reward|paid|funded/u.test(labelText.toLowerCase());
+  const isAlgora = /algora\.io/i.test(searchableText);
+
+  // Require an explicit dollar amount or a strong bounty label.
+  if (!parsed && !hasBountyLabel) return null;
+
+  return {
+    id: `gh-${issue.id}`,
+    number: issue.number,
+    title: issue.title,
+    repo: repoFromUrl(issue.repository_url),
+    url: issue.html_url,
+    bountyAmount: parsed?.amount || 'Bounty',
+    bountyValue: parsed?.value || 0,
+    source: isAlgora ? 'algora' : 'github',
+    labels,
+    createdAt: issue.created_at,
+    updatedAt: issue.updated_at,
+    assignees: issue.assignees?.length || 0,
+    comments: issue.comments ?? 0,
+  };
+}
+
+export interface BountyStats {
+  totalPool: number;
+  count: number;
+  unclaimedCount: number;
+  topRepo: string | null;
+}
+
+/** Repos that collect other projects' bounties (e.g. "bounty-plaza", "awesome-agent-bounties"). */
+const AGGREGATOR_REPO = /\/(?:awesome-[\w.-]*bount[\w.-]*|bount(?:y|ies)[-_]?(?:plaza|board|hub|list|market|feed|aggregator)s?)$/i;
+/** Re-posts wrap the original title in an extra tag: "[Bounty] [Bounty $3000] …". */
+const REPOSTED_TITLE = /^\[bounty\]\s*\[/i;
+
+/**
+ * True for listings that re-post someone else's bounty. They send
+ * contributors to a copy instead of the project that pays, so Orion skips them.
+ */
+export function isRepostedListing(bounty: Pick<BountyIssue, 'repo' | 'title'>): boolean {
+  return AGGREGATOR_REPO.test(bounty.repo) || REPOSTED_TITLE.test(bounty.title.trim());
+}
+
+/** Repositories under this many stars are new or unproven; their bounties are hidden by default. */
+export const ESTABLISHED_STARS = 10;
+
+/** Unknown star counts count as established, so a failed lookup never hides bounties. */
+export function isEstablished(bounty: Pick<BountyIssue, 'repoStars'>): boolean {
+  return bounty.repoStars === undefined || bounty.repoStars >= ESTABLISHED_STARS;
+}
+
+/** Showcase picks: established repositories, one bounty each, largest reward first. */
+export function featuredBounties(list: BountyIssue[], count = 4): BountyIssue[] {
+  const seen = new Set<string>();
+  const picked: BountyIssue[] = [];
+  for (const bounty of sortBounties(list.filter(isEstablished), 'amount')) {
+    if (seen.has(bounty.repo.toLowerCase())) continue;
+    seen.add(bounty.repo.toLowerCase());
+    picked.push(bounty);
+    if (picked.length === count) break;
   }
+  return picked;
+}
 
-  // Gitcoin bounties removed as per request (fabricated data)
+export function computeBountyStats(bounties: BountyIssue[]): BountyStats {
+  const totalPool = bounties.reduce((sum, b) => sum + b.bountyValue, 0);
+  const repoTotals = new Map<string, number>();
+  bounties.forEach(b => {
+    if (b.bountyValue > 0) repoTotals.set(b.repo, (repoTotals.get(b.repo) || 0) + b.bountyValue);
+  });
+  const topRepo = [...repoTotals.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || null;
 
-  // Sort by bounty value descending
-  bounties.sort((a, b) => b.bountyValue - a.bountyValue);
+  return {
+    totalPool,
+    count: bounties.length,
+    unclaimedCount: bounties.filter(b => b.assignees === 0).length,
+    topRepo,
+  };
+}
 
-  return bounties.slice(0, limit);
+export type BountySort = 'amount' | 'recent' | 'comments' | 'newest' | 'oldest';
+
+export function sortBounties(list: BountyIssue[], by: BountySort = 'amount'): BountyIssue[] {
+  return [...list].sort((a, b) => {
+    if (by === 'amount' && (a.bountyValue > 0 || b.bountyValue > 0)) return b.bountyValue - a.bountyValue;
+    if (by === 'comments' && a.comments !== b.comments) return b.comments - a.comments;
+    if (by === 'newest') return b.createdAt.localeCompare(a.createdAt);
+    if (by === 'oldest') return a.createdAt.localeCompare(b.createdAt);
+    return (b.updatedAt ?? b.createdAt).localeCompare(a.updatedAt ?? a.createdAt);
+  });
 }

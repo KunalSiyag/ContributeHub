@@ -1,0 +1,12 @@
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.fine {
+  margin-top: var(--s-4);
+  color: var(--fg-4);
+  font-size: var(--text-caption);
+  line-height: 1.5;
+}

@@ -1,37 +1,40 @@
 {
   "name": "contributehub",
   "version": "0.1.0",
-  "description": "A platform connecting developers with open-source projects needing help",
+  "description": "Orion: a workspace for open source contributors. Find issues that fit your stack, track them to merge, and keep program deadlines in view.",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
     "@gsap/react": "^2.1.2",
     "@supabase/ssr": "^0.8.0",
-    "@supabase/supabase-js": "^2.91.0",
+    "@supabase/supabase-js": "^2.117.3",
     "cheerio": "^1.2.0",
-    "gsap": "^3.14.2",
-    "locomotive-scroll": "^5.0.1",
+    "gsap": "^3.15.0",
     "mammoth": "^1.11.0",
-    "next": "16.1.4",
+    "next": "16.4.0",
     "pdf-parse": "^1.1.1",
     "react": "19.2.3",
     "react-dom": "19.2.3"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/cheerio": "^0.22.35",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/react": "^16.3.3",
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.1.4",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "eslint-config-next": "16.4.0",
+    "js-yaml": "^4.3.2",
+    "jsdom": "^26.1.0",
+    "typescript": "^5",
+    "vitest": "^4.1.11"
   }
 }

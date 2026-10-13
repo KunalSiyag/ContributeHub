@@ -1,0 +1,336 @@
+/* ---------- Tag ---------- */
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: var(--r-sm);
+  box-shadow: inset 0 0 0 1px var(--line);
+  background: var(--surface);
+  color: var(--fg-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.tagText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tagMuted {
+  background: var(--surface-2);
+  box-shadow: none;
+  color: var(--fg-3);
+}
+
+.tagAccent {
+  background: var(--accent-soft);
+  box-shadow: none;
+  color: var(--accent);
+}
+
+.tagDot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--r-full);
+  flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+}
+
+/* ---------- Status dot ---------- */
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  line-height: 1;
+  color: var(--fg-2);
+  white-space: nowrap;
+}
+
+.statusDot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--r-full);
+  background: var(--dot, var(--status-saved));
+  flex-shrink: 0;
+}
+
+.statusLive .statusDot {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--dot) 18%, transparent);
+}
+
+/* ---------- Language dot ---------- */
+
+.language {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--fg-3);
+  font-size: var(--text-caption);
+  white-space: nowrap;
+}
+
+.languageDot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--r-full);
+  flex-shrink: 0;
+}
+
+/* ---------- Kbd ---------- */
+
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: var(--r-sm);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+  background: var(--surface);
+  color: var(--fg-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-eyebrow);
+  line-height: 1;
+}
+
+/* ---------- Page header ---------- */
+
+.pageHeader {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--s-6);
+  padding-bottom: var(--s-6);
+  margin-bottom: var(--s-8);
+  border-bottom: 1px solid var(--line);
+}
+
+.pageHeaderText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  min-width: 0;
+}
+
+.pageTitle {
+  font-size: var(--text-title);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+}
+
+.pageDescription {
+  max-width: 62ch;
+  color: var(--fg-3);
+  font-size: var(--text-ui);
+  line-height: 1.55;
+}
+
+.pageActions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  flex-shrink: 0;
+}
+
+@media (max-width: 720px) {
+  .pageHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--s-4);
+    margin-bottom: var(--s-6);
+  }
+
+  .pageActions {
+    flex-wrap: wrap;
+  }
+}
+
+/* ---------- Section heading (inside pages) ---------- */
+
+.sectionHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-4);
+  margin-bottom: var(--s-3);
+}
+
+.sectionTitle {
+  font-size: var(--text-ui);
+  font-weight: 500;
+  color: var(--fg);
+}
+
+.sectionCount {
+  margin-left: 6px;
+  color: var(--fg-4);
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  font-weight: 400;
+}
+
+.sectionLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--link-accent);
+  font-size: var(--text-caption);
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.sectionLink:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ---------- Panel ---------- */
+
+.panel {
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--ring);
+}
+
+/* ---------- Empty state ---------- */
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-12) var(--s-6);
+  text-align: center;
+}
+
+.emptyIcon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  margin-bottom: var(--s-2);
+  border-radius: var(--r);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--fg-3);
+}
+
+.emptyTitle {
+  color: var(--fg);
+  font-size: var(--text-ui);
+  font-weight: 500;
+}
+
+.emptyBody {
+  max-width: 42ch;
+  color: var(--fg-3);
+  font-size: var(--text-caption);
+  line-height: 1.55;
+}
+
+.emptyAction {
+  margin-top: var(--s-3);
+  display: flex;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ---------- Skeleton ---------- */
+
+.skeleton {
+  display: block;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  animation: var(--kf-pulse) 1.6s var(--ease-in-out) infinite;
+}
+
+/* ---------- Avatar ---------- */
+
+.avatar {
+  border-radius: var(--r-full);
+  background: var(--surface-2);
+  box-shadow: 0 0 0 1px var(--line);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.avatarSquare {
+  border-radius: var(--r);
+}
+
+.avatarFallback {
+  display: inline-grid;
+  place-items: center;
+  color: var(--fg-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-eyebrow);
+  text-transform: uppercase;
+}
+
+/* ---------- Spinner ---------- */
+
+.spinner {
+  display: inline-block;
+  border-radius: 50%;
+  border: 1.5px solid var(--line-strong);
+  border-top-color: var(--fg);
+  animation: var(--kf-spin) 700ms linear infinite;
+}
+
+/* ---------- Notice ---------- */
+
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r);
+  background: var(--surface);
+  box-shadow: var(--ring);
+  color: var(--fg-2);
+  font-size: var(--text-caption);
+  line-height: 1.55;
+}
+
+.noticeIcon {
+  margin-top: 2px;
+  color: var(--fg-3);
+}
+
+.noticeWarning {
+  background: var(--warning-soft);
+  box-shadow: none;
+}
+
+.noticeWarning .noticeIcon {
+  color: var(--status-working);
+}
+
+.noticeDanger {
+  background: var(--danger-soft);
+  box-shadow: none;
+}
+
+.noticeDanger .noticeIcon {
+  color: var(--status-danger);
+}
+
+.noticeBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.noticeTitle {
+  color: var(--fg);
+  font-weight: 500;
+}
