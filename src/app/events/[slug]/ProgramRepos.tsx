@@ -1,5 +1,5 @@
 import type { Repository } from '@/types';
-import { searchRepositories } from '@/lib/github';
+import { keepLastGoodPage, searchRepositories } from '@/lib/github';
 import RepoRow from '@/components/RepoRow';
 import rows from '@/components/rows.module.css';
 import styles from './page.module.css';
@@ -13,7 +13,8 @@ async function load(topic: string): Promise<{ items: Repository[]; total: number
   try {
     const data = await searchRepositories(programRepoQuery(topic), { sort: 'updated', perPage: 6, revalidate: 3600 });
     return { items: data.items, total: data.total_count };
-  } catch {
+  } catch (error) {
+    await keepLastGoodPage(error);
     return null;
   }
 }

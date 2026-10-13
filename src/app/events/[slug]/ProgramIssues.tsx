@@ -1,5 +1,5 @@
 import type { Issue } from '@/types';
-import { GitHubError, searchIssues } from '@/lib/github';
+import { GitHubError, keepLastGoodPage, searchIssues } from '@/lib/github';
 import IssueRow from '@/components/IssueRow';
 import { Notice } from '@/components/ui/primitives';
 import rows from '@/components/rows.module.css';
@@ -21,6 +21,7 @@ async function load(label: string, since?: string): Promise<Result> {
     });
     return { items, total: total_count };
   } catch (error) {
+    await keepLastGoodPage(error);
     return {
       error:
         error instanceof GitHubError && error.rateLimited

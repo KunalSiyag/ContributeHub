@@ -40,7 +40,7 @@ in view. Every list in Orion is a live, cached GitHub query.
 - Next.js 16 (App Router, Turbopack) and React 19, TypeScript
 - CSS Modules on a token-based design system (`src/app/globals.css`, documented in `docs/DESIGN.md`)
 - Supabase: GitHub and Google OAuth (PKCE, cookie sessions via `@supabase/ssr`), Postgres with row level security
-- GitHub REST and Search APIs through one cached, rate-limit-aware client (`src/lib/github.ts`)
+- GitHub REST and Search APIs through one cached, rate-limit-aware client (`src/lib/github.ts`). When GitHub rate-limits a cached page's refresh, the page keeps its last good copy instead of caching the notice
 - Optional Google Gemini (REST) for resume extraction and issue approach drafts
 
 ## Getting started
