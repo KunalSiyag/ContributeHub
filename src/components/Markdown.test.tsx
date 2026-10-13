@@ -35,6 +35,16 @@ describe('assistant Markdown details', () => {
   });
 });
 
+describe('Markdown quotes', () => {
+  it('renders quoted lines as one quote', () => {
+    const out = html("Intro\n> **Tip:** merge public branches,\n> rebase local ones.\n\nAfter");
+    expect(out).toContain('<blockquote');
+    expect(out).toContain('><strong>Tip:</strong> merge public branches, rebase local ones.</blockquote>');
+    expect(out).not.toContain('&gt;');
+    expect(out).toMatch(/<p[^>]*>Intro<\/p><blockquote/);
+  });
+});
+
 describe('Markdown images', () => {
   it('shows images from allowed hosts only where a page allows them', () => {
     const text = 'Look: ![the bug](https://github.com/user-attachments/assets/abc) and ![x](https://evil.example/t.png)';

@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server';
 import { ASSISTANT_SYSTEM, issueSearchContext, programContext, repoMention, repositoryContext, SEARCH_INTENT } from '@/lib/assistant';
-import { generateAnswer, isAIAvailable, isWebSearchEnabled, type ChatTurn } from '@/lib/gemini';
+import { generateAnswer, isAIAvailable, isGoogleSearchEnabled, type ChatTurn } from '@/lib/gemini';
 import { jsonError, readJson } from '@/lib/api';
 import { allowRequest, clientKey } from '@/lib/rate-limit';
+import { citeResults, searchWeb, webResultsContext, type WebSearch } from '@/lib/web-search';
 
 interface Body {
   messages?: unknown;
   repo?: unknown;
-  /** Ground the answer in a Google search (when the site enables it). */
+  /** Search the web too: Google (when the site's Gemini plan has it) or the free search APIs. */
   webSearch?: unknown;
 }
 
@@ -39,32 +40,38 @@ export async function POST(request: Request) {
   const explicit = typeof body?.repo === 'string' && /^[\w.-]+\/[\w.-]+$/.test(body.repo) ? body.repo : null;
   const repo = explicit ?? repoMention(last.text) ?? [...turns].reverse().map(turn => repoMention(turn.text)).find(Boolean) ?? null;
   const conversation = turns.map(turn => turn.text).join('\n');
-  const [repoText, programText, issuesText] = await Promise.all([
+  // Web search: Google Search grounding where the Gemini plan has it, otherwise the free search APIs.
+  const wantsWeb = body?.webSearch === true;
+  const google = wantsWeb && isGoogleSearchEnabled();
+  const previousQuestion = turns.slice(0, -1).findLast(turn => turn.role === 'user')?.text;
+  const [repoText, programText, issuesText, freeSearch] = await Promise.all([
     repo ? repositoryContext(repo) : Promise.resolve(null),
     PROGRAM_WORDS.test(conversation) ? programContext() : Promise.resolve(null),
     SEARCH_INTENT.test(last.text) ? issueSearchContext(last.text) : Promise.resolve(null),
+    wantsWeb && !google ? searchWeb(last.text, previousQuestion) : Promise.resolve(undefined),
   ]);
 
-  const context = [repoText ?? (repo ? `CONTEXT: the repository ${repo} could not be found on GitHub.` : null), programText, issuesText]
-    .filter(Boolean)
-    .join('\n\n');
-  const grounded: ChatTurn[] = context
-    ? [...turns.slice(0, -1), { role: 'user', text: `${last.text}\n\n---\n${context}` }]
-    : turns;
+  const context = [repoText ?? (repo ? `CONTEXT: the repository ${repo} could not be found on GitHub.` : null), programText, issuesText];
+  const ground = (...more: Array<string | null>): ChatTurn[] => {
+    const blocks = [...context, ...more].filter(Boolean).join('\n\n');
+    return blocks ? [...turns.slice(0, -1), { role: 'user', text: `${last.text}\n\n---\n${blocks}` }] : turns;
+  };
 
-  // Web search when asked for and enabled; if Google refuses (quota, plan), answer without it.
-  const wantsWeb = body?.webSearch === true && isWebSearchEnabled();
-  const searched = wantsWeb ? await generateAnswer(ASSISTANT_SYSTEM, grounded, { maxOutputTokens: 1400, webSearch: true }) : null;
-  const answer = searched ?? (await generateAnswer(ASSISTANT_SYSTEM, grounded, { maxOutputTokens: 1400 }));
+  // If Google refuses (quota, plan), the free search stands in.
+  const googled = google ? await generateAnswer(ASSISTANT_SYSTEM, ground(), { maxOutputTokens: 1400, webSearch: true }) : null;
+  const web: WebSearch | null | undefined = google && !googled ? await searchWeb(last.text, previousQuestion) : freeSearch;
+  const found = !googled && web?.results.length ? web : null;
+  const answer = googled ?? (await generateAnswer(ASSISTANT_SYSTEM, ground(found && webResultsContext(found)), { maxOutputTokens: 1400 }));
   if (!answer) return NextResponse.json({ available: false });
+  const cited = found ? citeResults(answer.text, found.results) : null;
   return NextResponse.json(
     {
       available: true,
-      reply: answer.text,
+      reply: cited?.text ?? answer.text,
       repo: repoText ? repo : null,
-      sources: answer.sources,
+      sources: cited?.sources ?? answer.sources,
       searchedIssues: Boolean(issuesText),
-      webSearch: wantsWeb ? (searched ? 'used' : 'unavailable') : 'off',
+      webSearch: !wantsWeb ? 'off' : googled ? 'google' : found ? 'free' : web === null ? 'unavailable' : 'none',
     },
     { headers: { 'Cache-Control': 'no-store' } }
   );

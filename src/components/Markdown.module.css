@@ -30,6 +30,13 @@
   color: var(--fg-4);
 }
 
+.quote {
+  padding-left: var(--s-3);
+  border-left: 2px solid var(--line-strong);
+  color: var(--fg-3);
+  text-wrap: pretty;
+}
+
 .markdown strong {
   color: var(--fg);
   font-weight: 600;

@@ -3,7 +3,7 @@ import styles from './Markdown.module.css';
 
 /**
  * A small Markdown renderer for assistant replies and forum posts:
- * paragraphs, headings, lists, fenced code, inline code, bold, italics, links
+ * paragraphs, headings, lists, quotes, fenced code, inline code, bold, italics, links
  * and, where a page allows them, images. It builds React elements (never
  * HTML strings), so model output can't inject markup, and links are limited
  * to http(s) and site-relative paths.
@@ -118,13 +118,33 @@ export default function Markdown({ text, images = false }: { text: string; image
       continue;
     }
 
+    if (/^\s*>/.test(line)) {
+      const quote: string[] = [];
+      while (i < lines.length && /^\s*>/.test(lines[i])) {
+        const part = lines[i].replace(/^\s*>\s?/, '').trim();
+        if (part) quote.push(part);
+        i++;
+      }
+      blocks.push(
+        <blockquote key={key++} className={styles.quote}>
+          {quote.map((part, n) => (
+            <Fragment key={n}>
+              {n > 0 && ' '}
+              {inline(part, `q${key}-${n}`, true, images)}
+            </Fragment>
+          ))}
+        </blockquote>
+      );
+      continue;
+    }
+
     if (!line.trim()) {
       i++;
       continue;
     }
 
     const paragraph: string[] = [];
-    while (i < lines.length && lines[i].trim() && !/^\s*(```|#{1,6}\s|[-*+]\s|\d+[.)]\s)/.test(lines[i])) {
+    while (i < lines.length && lines[i].trim() && !/^\s*(```|#{1,6}\s|[-*+]\s|\d+[.)]\s|>)/.test(lines[i])) {
       paragraph.push(lines[i].trim());
       i++;
     }

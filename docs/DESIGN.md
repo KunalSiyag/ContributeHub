@@ -91,6 +91,9 @@ Styles reviewed on styles.refero.design, plus ossium.in as the brief's reference
 | Forward links ("View all →", "View query on GitHub ↗") and their arrows use Signal Orange; prose links stay neutral and underlined | Graphite (Refero, re-fetched 2026-10-13) | Graphite reserves orange for exactly this role; it brings back a primary-reference trait the earlier build had dropped. |
 | Panels, cards, lists, inputs and code surfaces at 10px; buttons at 8px | Graphite | Graphite's do/don't rules: 10px for cards, inputs and frames, 8px for rectangular buttons, nothing above 10px. |
 | Selected controls (current page, chosen banner) get the Steel Border, not a color or a side bar | Graphite | Graphite marks selection with #464646 edges. |
+| Pill filter rows wrap above 640px; on phones they stay one line that scrolls, with an edge fade | Refero visual QA (2026-10-13, P2) | A row clipped mid-word hid six perk categories on desktop and gave no sign it scrolled. |
+| Assistant web results are cited inline as bracketed numbers that link to the result, with a numbered source list under the answer | Perplexity AI (Refero, 81afaa5c) | The reader sees which sentence rests on which page; numbers in the text match the list. |
+| Quotes in posts and answers sit behind a 2px steel rule in muted text | GitHub (Refero, c3ceca5c) | A quote reads as someone else's words without a box around it. |
 
 ## Visual QA (Refero visual workflow, 2026-10-12)
 
@@ -142,6 +145,53 @@ token with Orion's dark theme (the theme Graphite describes).
 | Spectrum gradient | linework and graphic borders | hero linework, profile banner line | Match (never a surface fill) |
 
 Result after fixes: passed. Screenshots in light and dark, desktop and phone, and axe on every changed page.
+
+## Full visual pass (Refero visual workflow, 2026-10-13)
+
+Every route in both themes, on desktop and phone, signed out and signed in, checked against captured
+source truth. It follows `references/visual-workflow.md` of the Refero skill (referodesign/refero_skill,
+master a9b54a3) and the pre-ship checklists in `craft-details.md` and `motion.md`.
+
+```text
+Source truth: URL captures (headless Chrome, 2026-10-13) of Refero's Graphite style page (styles.refero.design/style/fd36bae9-dbf4-4b0f-a48b-e8c6f92edca3) and of graphite.dev at 1440x900 (viewport and full page) and 390x844, plus the reference lock and decision ledger above
+Implementation evidence: production-build screenshots of 31 routes x dark/light x 1440x900 and 390x844 (124 captures), six full-page captures, 28 signed-in captures against a local Supabase stack with test members, and re-shoots of every fixed page. Contact sheets are in docs/qa/2026-10-13/ (sweep sheets show the state before fixes; fixes-*.jpg show after)
+Viewport/state: 1440x900 and 390x844; dark and light; signed out and signed in (four tracked issues across the board, two alerts with new issues, preferences, a thread with a reply, a reaction and a quote); empty, filled and error states (404, sign-in error, empty leaderboard and forum)
+Final result: passed (no open P0–P2)
+```
+
+| Severity | Where | Finding | Fix |
+|---|---|---|---|
+| P1 | `/collections` | OSS Insight's v1 collections API answered 500 (an upstream 401), so the page said "Collections are unavailable" and every collection was empty | Falls back to OSS Insight's older endpoints, which still answer: 138 public collections again. Tests cover both paths |
+| P2 | `/perks`, `/companies`, `/trending`, `/starter` | Scrolling pill rows were clipped at the right edge on desktop ("Infrastru…") with no sign they scroll; six perk categories were out of sight | Rows wrap above 640px; on phones they scroll with an edge fade |
+| P2 | `/repos/compare` | Both repository inputs were 280px tall: the lookup field's flex basis became a height inside the column | The field keeps input height in the compare form |
+| P2 | `/assistant` on phones | The welcome opened scrolled to its end, hiding the title: the scroll that follows new answers also ran with no conversation | Scrolls to the top when there is no conversation |
+| P2 | `/discover` on phones | "1,000+ open issues" wrapped onto three lines beside its links | The count gets its own line, links below; the preset row fades at the edge |
+| P3 | `/events/:slug`, program rows | "Paid" and "Official dates" tags were green, though they are attributes | Neutral tags (role rules) |
+| P3 | `/community` with no threads | Two primary "Start a discussion" buttons in one view | The empty state's button is secondary |
+| P3 | `/perks` on phones | The external-link arrow sat alone on a line under each perk | Icon-only asides stay beside the text |
+| P3 | `/u` on phones | Placeholder cut off ("…profile lin") | Shorter placeholder |
+| P3 | Assistant answers, forum posts | A Markdown quote printed a literal ">" | Quotes render (ledger row above) |
+| P3 | Signed-out `/issues` and `/dashboard` vs `/alerts` | Two signed-out patterns: a panel with a lock, and a centred empty state | Kept: both explain the page and offer sign-in; candidate for a later pass |
+| – | Full-page captures | Sidebar, top bar and skip link drawn mid-page | Capture artefact (sticky and fixed elements are painted at the last scroll position); not what people see |
+
+Graphite, captured, against Orion:
+
+| Graphite (graphite.dev, 2026-10-13) | Orion | Result |
+|---|---|---|
+| Near-black canvas, off-white type, hairline borders | #0a0a0a canvas, #fafafa type, #262626 hairlines | Match |
+| Pale primary next to a charcoal secondary; conversion controls monochrome | Pale primary pill and a dark hairline secondary; no colored button fills | Match. Graphite's site adds a faint spectral edge to its primary; Refero's write-up calls conversion controls monochrome, so Orion keeps the spectrum for linework |
+| Product shown in a hairline frame at a 10px radius | Live tracker demo in a framed panel; panels at 10px | Match (Ossium's dashed frame and + markers on marketing, per the lock) |
+| Small arrow links in Signal Orange | Forward links and arrows in `--link-accent` | Match |
+| Left-aligned 500-weight hero beside a glowing hexagon | Centred 600-weight hero with the constellation | Deviation, recorded in the ledger (Ossium hero, Geist) |
+| Footer with link columns and a green "All systems operational" dot | Framed footer with link columns and a green "Live data from GitHub" dot | Match |
+
+Checks run alongside the screenshots:
+
+- **Layout:** no page scrolls sideways at 390px (all 62 signed-out and 12 signed-in phone views measured).
+- **axe:** clean on 78 page and theme combinations (31 routes in both themes signed out, 8 in both themes signed in).
+- **Focus (`craft-details.md`):** every `outline: none` is on a control whose wrapper draws the ring with `:focus-within`, or that draws its own (`:has(input:focus-visible)` for banner radios, the dropzone for the file input). The command palette input is the exception: a modal whose caret shows focus.
+- **Motion (`motion.md` pre-ship list):** no `transition: all`. Linear easing appears only on continuous loops (spinners, marquee, beam) and the scroll-scrubbed tilt, where constant speed is the point. Product UI uses the 120–320ms tokens. Durations above 500ms appear only on the marketing home page (hero entrance 900ms, constellation 0.7–1.4s, section reveals 0.9–1s), which `motion.md` allows for marketing. Every GSAP timeline runs inside the `(prefers-reduced-motion: no-preference)` query, and CSS durations drop to 0 under reduced motion.
+- **Tokens:** raw colors appear only where documented (white tiles behind official logos, black in mask gradients). No radius is above Graphite's 10px except pills.
 
 ## Tokens
 

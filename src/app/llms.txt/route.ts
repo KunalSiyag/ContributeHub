@@ -21,7 +21,7 @@ export function GET() {
 - [Programs](${site}/events): tracked programs with countdowns, and a community directory of other programs. Per edition: ${site}/events/{slug}
 - [Bounties](${site}/bounties): open issues with stated rewards.
 - [Contributor profiles](${site}/u): merged pull requests and projects for any GitHub account. Per account: ${site}/u/{username}
-- [Assistant](${site}/assistant): explains repositories and answers program questions, grounded in repository files and program data.
+- [Assistant](${site}/assistant): explains repositories and answers program questions, grounded in repository files and program data; can also search Stack Overflow, Wikipedia and Hacker News and cite them.
 - [Resources](${site}/resources): guides, communities and perks for students and maintainers.
 - [Perks for open source](${site}/perks): free plans, credits and programs for open source projects, refreshed daily from Awesome OSS Perks (CC0).
 - [Community](${site}/community): discussions about programs, issues and shipped work. Anyone can read; members post.

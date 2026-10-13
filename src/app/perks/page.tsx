@@ -75,7 +75,7 @@ export default async function PerksPage({ searchParams }: { searchParams: Promis
           </h2>
           <ul className={rows.list}>
             {visible.map(perk => (
-              <li key={`${perk.category}-${perk.url}`} className={rows.row} data-spotlight="wash">
+              <li key={`${perk.category}-${perk.url}`} className={`${rows.row} ${rows.iconAside}`} data-spotlight="wash">
                 <div className={rows.main}>
                   <a href={perk.url} target="_blank" rel="noopener noreferrer" className={`${rows.title} ${rows.stretch}`}>
                     {perk.name}

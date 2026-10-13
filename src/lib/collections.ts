@@ -6,6 +6,8 @@ import 'server-only';
  * from there; live figures for the members come from GitHub.
  */
 const API = 'https://api.ossinsight.io/v1/collections';
+/** OSS Insight's older endpoints, which kept answering when the v1 API returned errors (13 October 2026). */
+const LEGACY_API = 'https://api.ossinsight.io/collections';
 export const COLLECTIONS_SOURCE = 'https://ossinsight.io/collections';
 
 export interface Collection {
@@ -13,19 +15,28 @@ export interface Collection {
   name: string;
 }
 
-async function rows(path: string): Promise<Array<Record<string, unknown>>> {
+async function fetchRows(url: string, pick: (data: unknown) => unknown): Promise<Array<Record<string, unknown>>> {
   try {
-    const response = await fetch(`${API}${path}`, { next: { revalidate: 86400 }, signal: AbortSignal.timeout(10000) });
+    const response = await fetch(url, { next: { revalidate: 86400 }, signal: AbortSignal.timeout(10000) });
     if (!response.ok) return [];
-    const data = (await response.json()) as { data?: { rows?: unknown } };
-    return Array.isArray(data?.data?.rows) ? (data.data.rows as Array<Record<string, unknown>>) : [];
+    const rows = pick(await response.json());
+    return Array.isArray(rows) ? (rows as Array<Record<string, unknown>>) : [];
   } catch {
     return [];
   }
 }
 
+/** Rows from the v1 API ({ data: { rows } }), or from the older one ({ data: [...] }) when v1 has none. */
+async function rows(path: string): Promise<Array<Record<string, unknown>>> {
+  const current = await fetchRows(`${API}${path}`, data => (data as { data?: { rows?: unknown } } | null)?.data?.rows);
+  if (current.length) return current;
+  // The older API serves a collection's members at /{id}/ rather than /{id}/repos/.
+  return fetchRows(`${LEGACY_API}${path.replace(/^\/(\d+)\/repos\/$/, '/$1/')}`, data => (data as { data?: unknown } | null)?.data);
+}
+
 export async function getCollections(): Promise<Collection[]> {
   return (await rows('/'))
+    .filter(row => row.public !== 0)
     .map(row => ({ id: String(row.id ?? ''), name: String(row.name ?? '').trim() }))
     .filter(c => /^\d+$/.test(c.id) && c.name)
     .sort((a, b) => a.name.localeCompare(b.name));

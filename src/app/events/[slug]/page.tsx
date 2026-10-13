@@ -225,7 +225,7 @@ export default async function ProgramPage({ params }: ProgramPageProps) {
               {phase.label}
             </StatusDot>
             <span className={styles.tags}>
-              <Tag tone={event.isPaid ? 'accent' : 'muted'}>{event.isPaid ? 'Paid' : 'Unpaid'}</Tag>
+              <Tag tone={event.isPaid ? 'default' : 'muted'}>{event.isPaid ? 'Paid' : 'Unpaid'}</Tag>
               <Tag tone="muted">Remote</Tag>
               <Tag tone="muted">{PROGRAM_TYPE_LABEL[event.type]}</Tag>
             </span>

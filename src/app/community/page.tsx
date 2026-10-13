@@ -51,7 +51,7 @@ export default async function CommunityPage({ searchParams }: { searchParams: Pr
           {active && <p className={styles.blurb}>{CATEGORIES.find(c => c.value === active)?.blurb}</p>}
 
           {items.length === 0 ? (
-            <EmptyState icon={<IconMessageSquare size={16} />} title="No discussions here yet" action={<StartDiscussion />}>
+            <EmptyState icon={<IconMessageSquare size={16} />} title="No discussions here yet" action={<StartDiscussion variant="secondary" />}>
               Start the first one.
             </EmptyState>
           ) : (

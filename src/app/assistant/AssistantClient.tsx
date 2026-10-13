@@ -14,7 +14,12 @@ import styles from './assistant.module.css';
 interface Source {
   title: string;
   url: string;
+  /** The citation number in the answer ("[2]"), for web results. */
+  n?: number;
 }
+
+/** How a turn searched the web: Google Search, or the free search APIs. */
+type WebMode = 'google' | 'free';
 
 interface Turn {
   role: 'user' | 'model';
@@ -22,6 +27,7 @@ interface Turn {
   sources?: Source[];
   /** The answer used a live GitHub issue search. */
   searchedIssues?: boolean;
+  searchedWeb?: WebMode;
 }
 
 interface Chat {
@@ -66,7 +72,12 @@ function saveChats(chats: Chat[]) {
 
 const titleOf = (turns: Turn[]) => (turns.find(turn => turn.role === 'user')?.text ?? 'Chat').replace(/\s+/g, ' ').slice(0, 70);
 
-export default function AssistantClient({ initialRepo, webSearchAvailable = false }: { initialRepo: string | null; webSearchAvailable?: boolean }) {
+const WEB_NOTE: Record<WebMode, string> = {
+  google: 'Searched the web with Google.',
+  free: 'Searched Stack Overflow, Wikipedia and Hacker News.',
+};
+
+export default function AssistantClient({ initialRepo, googleSearch = false }: { initialRepo: string | null; googleSearch?: boolean }) {
   const { toast } = useToast();
   const [turns, setTurns] = useState<Turn[]>([]);
   const [chats, setChats] = useState<Chat[]>([]);
@@ -117,7 +128,7 @@ export default function AssistantClient({ initialRepo, webSearchAvailable = fals
       const response = await fetch('/api/assistant', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: next.map(({ role, text: body }) => ({ role, text: body })), webSearch: webSearchAvailable && webSearch }),
+        body: JSON.stringify({ messages: next.map(({ role, text: body }) => ({ role, text: body })), webSearch }),
       });
       const data = (await response.json()) as {
         available?: boolean;
@@ -125,14 +136,19 @@ export default function AssistantClient({ initialRepo, webSearchAvailable = fals
         message?: string;
         sources?: Source[];
         searchedIssues?: boolean;
-        webSearch?: 'used' | 'unavailable' | 'off';
+        webSearch?: WebMode | 'none' | 'unavailable' | 'off';
       };
       if (!response.ok) throw new Error(data.message ?? 'The assistant could not answer.');
       if (!data.available || !data.reply) throw new Error('The assistant is unavailable right now. Try again in a moment.');
-      const answered = [...next, { role: 'model' as const, text: data.reply, sources: data.sources?.length ? data.sources : undefined, searchedIssues: data.searchedIssues || undefined }];
+      const searchedWeb = data.webSearch === 'google' || data.webSearch === 'free' ? data.webSearch : undefined;
+      const answered = [
+        ...next,
+        { role: 'model' as const, text: data.reply, sources: data.sources?.length ? data.sources : undefined, searchedIssues: data.searchedIssues || undefined, searchedWeb },
+      ];
       setTurns(answered);
       remember(answered, id);
       if (data.webSearch === 'unavailable') toast('Web search isn’t available right now, so this answer comes from Orion’s own data.');
+      else if (data.webSearch === 'none') toast('The web search found nothing for this question, so this answer comes from Orion’s own data.');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'The assistant could not answer.');
       // Give the question back so it can be retried as is.
@@ -153,7 +169,11 @@ export default function AssistantClient({ initialRepo, webSearchAvailable = fals
   }, [initialRepo]);
 
   useEffect(() => {
-    logRef.current?.scrollTo({ top: logRef.current.scrollHeight, behavior: 'smooth' });
+    const log = logRef.current;
+    if (!log) return;
+    // The welcome reads from the top; a conversation follows its newest turn.
+    if (turns.length === 0 && !pending) log.scrollTo({ top: 0 });
+    else log.scrollTo({ top: log.scrollHeight, behavior: 'smooth' });
   }, [turns, pending]);
 
   const onSubmit = (event: FormEvent) => {
@@ -207,7 +227,8 @@ export default function AssistantClient({ initialRepo, webSearchAvailable = fals
             <p className={styles.welcomeTitle}>Ask about any repository or program</p>
             <p className={styles.welcomeText}>
               Name a repository (owner/repo or a GitHub link) and the assistant reads its README, layout and contributing
-              guide. Ask about programs and it uses today&rsquo;s dates from Orion; ask it to find issues and it searches GitHub.
+              guide. Ask about programs and it uses today&rsquo;s dates from Orion; ask it to find issues and it searches GitHub. Turn on
+              Search the web for answers that cite Stack Overflow, Wikipedia and Hacker News.
             </p>
             <div className={styles.suggestions}>
               {SUGGESTIONS.map(suggestion => (
@@ -225,12 +246,13 @@ export default function AssistantClient({ initialRepo, webSearchAvailable = fals
                 <span className="visually-hidden">{turn.role === 'user' ? 'You said:' : 'Assistant:'}</span>
                 {turn.role === 'user' ? <p className={styles.userText}>{turn.text}</p> : <Markdown text={turn.text} />}
                 {turn.searchedIssues && <p className={styles.turnNote}>Searched GitHub for open issues.</p>}
+                {turn.searchedWeb && <p className={styles.turnNote}>{WEB_NOTE[turn.searchedWeb]}</p>}
                 {turn.sources && (
                   <div className={styles.sources}>
                     <span className={styles.sourcesLabel}>Sources</span>
                     <ol className={styles.sourceList}>
                       {turn.sources.map(source => (
-                        <li key={source.url}>
+                        <li key={source.url} value={source.n}>
                           <a href={source.url} target="_blank" rel="noopener noreferrer">
                             {source.title}
                           </a>
@@ -245,7 +267,7 @@ export default function AssistantClient({ initialRepo, webSearchAvailable = fals
               <li className={styles.modelTurn}>
                 <span className={styles.thinking}>
                   <span aria-hidden="true" />
-                  {webSearchAvailable && webSearch ? 'Searching the web and reading the sources…' : 'Reading the sources…'}
+                  {webSearch ? 'Searching the web and reading the sources…' : 'Reading the sources…'}
                 </span>
               </li>
             )}
@@ -274,9 +296,13 @@ export default function AssistantClient({ initialRepo, webSearchAvailable = fals
           maxLength={2000}
         />
         <div className={styles.composerActions}>
-          {webSearchAvailable && (
-            <Checkbox label="Search the web" checked={webSearch} onChange={event => toggleWeb(event.target.checked)} className={styles.webToggle} />
-          )}
+          <Checkbox
+            label="Search the web"
+            checked={webSearch}
+            onChange={event => toggleWeb(event.target.checked)}
+            className={styles.webToggle}
+            aria-describedby="assistant-web-note"
+          />
           <span className={styles.actionsSpacer} />
           {chats.length > 0 && (
             <Menu
@@ -309,7 +335,12 @@ export default function AssistantClient({ initialRepo, webSearchAvailable = fals
         </div>
       </form>
       <p className={styles.disclaimer}>
-        Answers come from a language model reading public sources. Check important details before you rely on them. Chats are kept in this browser only.
+        Answers come from a language model reading public sources. Check important details before you rely on them. Chats are kept in this browser only.{' '}
+        <span id="assistant-web-note">
+          {googleSearch
+            ? 'Web search uses Google Search through Gemini, or the public search of Stack Overflow, Wikipedia and Hacker News when Google is unavailable.'
+            : 'Web search sends keywords from your question to the public search of Stack Overflow, Wikipedia and Hacker News.'}
+        </span>
       </p>
     </div>
   );
