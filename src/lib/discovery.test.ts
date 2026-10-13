@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   mergeStarterProjects,
   parseAwesomeForBeginners,
@@ -8,7 +8,7 @@ import {
   starterIssuesUrl,
 } from './starter-projects';
 import { batchOrder, parseYcCompanies } from './yc';
-import { collectionSlug } from './collections';
+import { collectionSlug, getCollectionRepos, getCollections } from './collections';
 import { dailyPick } from './watchlist';
 import { categoryLabel, isCategory, isMissingTable } from './community';
 import { rankEntries, statsQuery, windowStart } from './leaderboard.server';
@@ -122,8 +122,37 @@ describe('open source companies', () => {
 });
 
 describe('collections', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
   it('make readable slugs', () => {
     expect(collectionSlug({ id: '10010', name: 'AI Agent Frameworks' })).toBe('10010-ai-agent-frameworks');
+  });
+
+  it('use the v1 API while it answers', async () => {
+    const fetchMock = vi.fn(async (url: string) =>
+      Response.json(url.endsWith('/v1/collections/') ? { data: { rows: [{ id: 10001, name: 'CSS Framework' }] } } : { data: { rows: [{ repo_name: 'twbs/bootstrap' }] } })
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    expect(await getCollections()).toEqual([{ id: '10001', name: 'CSS Framework' }]);
+    expect(await getCollectionRepos('10001')).toEqual(['twbs/bootstrap']);
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual(['https://api.ossinsight.io/v1/collections/', 'https://api.ossinsight.io/v1/collections/10001/repos/']);
+  });
+
+  it('fall back to the older API when v1 fails, leaving out private collections', async () => {
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes('/v1/')) return Response.json({ message: 'Request failed with status code 401' }, { status: 500 });
+      if (url === 'https://api.ossinsight.io/collections/') {
+        return Response.json({ data: [{ id: 10002, name: 'Web Framework', public: 1 }, { id: 10003, name: 'Draft', public: 0 }, { id: 1, name: 'Database', public: 1 }] });
+      }
+      return Response.json({ data: [{ collection_id: 10002, repo_name: 'vuejs/core' }, { repo_name: 'not a repo' }] });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    expect(await getCollections()).toEqual([
+      { id: '1', name: 'Database' },
+      { id: '10002', name: 'Web Framework' },
+    ]);
+    expect(await getCollectionRepos('10002')).toEqual(['vuejs/core']);
+    expect(fetchMock.mock.calls.map(([url]) => url)).toContain('https://api.ossinsight.io/collections/10002/');
   });
 });
 

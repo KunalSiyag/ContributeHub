@@ -278,6 +278,8 @@
     overflow-x: auto;
     overscroll-behavior-x: contain;
     scrollbar-width: none;
+    /* The fade says the row goes on. */
+    mask-image: linear-gradient(to right, transparent, #000 var(--gutter), #000 calc(100% - var(--gutter) - 24px), transparent);
   }
 
   .chips::-webkit-scrollbar {
@@ -286,6 +288,16 @@
 
   .results {
     margin-top: var(--s-5);
+  }
+
+  /* The count gets its own line; the links sit under it. */
+  .resultsHead {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .queryLinks {
+    justify-content: flex-start;
+    justify-self: start;
   }
 }
 

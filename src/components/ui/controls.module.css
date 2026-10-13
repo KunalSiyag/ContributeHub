@@ -123,16 +123,29 @@
   gap: 6px;
 }
 
+/* Phones: one line that scrolls, fading at the edges so a cut-off pill reads as "more". */
 .pillsScroll {
   flex-wrap: nowrap;
   overflow-x: auto;
   scrollbar-width: none;
   margin-inline: calc(var(--gutter) * -1);
   padding-inline: var(--gutter);
+  mask-image: linear-gradient(to right, transparent, #000 var(--gutter), #000 calc(100% - var(--gutter) - 24px), transparent);
 }
 
 .pillsScroll::-webkit-scrollbar {
   display: none;
+}
+
+/* Wider screens have room: the row wraps and every pill shows. */
+@media (min-width: 641px) {
+  .pillsScroll {
+    flex-wrap: wrap;
+    overflow-x: visible;
+    margin-inline: 0;
+    padding-inline: 0;
+    mask-image: none;
+  }
 }
 
 .pill {

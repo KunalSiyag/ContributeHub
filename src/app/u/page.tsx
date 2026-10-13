@@ -36,7 +36,7 @@ export default async function ProfileLookup({ searchParams }: { searchParams: Pr
                 id="user-input"
                 name="user"
                 defaultValue={input}
-                placeholder="octocat or a GitHub profile link"
+                placeholder="octocat or a profile link"
                 autoComplete="off"
                 spellCheck={false}
                 required

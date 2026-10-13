@@ -145,8 +145,12 @@ export async function generateText(system: string, turns: ChatTurn[], options: {
   return (await generateAnswer(system, turns, options))?.text ?? null;
 }
 
-/** Web search in the assistant is opt-in: Google Search grounding needs a paid Gemini plan. */
-export const isWebSearchEnabled = () => process.env.GEMINI_WEB_SEARCH === '1' && isAIConfigured();
+/**
+ * Google Search grounding for the assistant's web search: opt-in, because it
+ * needs a Gemini plan that includes it. Without it, web search uses the free
+ * search APIs in web-search.ts.
+ */
+export const isGoogleSearchEnabled = () => process.env.GEMINI_WEB_SEARCH === '1' && isAIConfigured();
 
 const strings = (value: unknown, max = 15) =>
   Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string').map(v => v.trim()).filter(Boolean).slice(0, max) : [];

@@ -240,6 +240,11 @@ a.title:hover,
     padding: 14px;
   }
 
+  /* A row whose aside is only an icon keeps it beside the text. */
+  .row.iconAside {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
   .withLead {
     grid-template-columns: auto minmax(0, 1fr);
   }

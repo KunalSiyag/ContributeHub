@@ -30,10 +30,10 @@ export default function ProgramRow({ event, showDescription = true }: { event: C
         </Link>
         {showDescription && <p className={styles.description}>{event.description}</p>}
         <div className={styles.tags}>
-          <Tag tone={event.isPaid ? 'accent' : 'muted'}>{event.isPaid ? 'Paid' : 'Unpaid'}</Tag>
+          <Tag tone={event.isPaid ? 'default' : 'muted'}>{event.isPaid ? 'Paid' : 'Unpaid'}</Tag>
           <Tag tone="muted">Remote</Tag>
           {event.cohortsNote && <Tag tone="muted">Multiple cohorts</Tag>}
-          {basis.badge && <Tag tone={basis.kind === 'official' ? 'accent' : 'muted'}>{basis.badge}</Tag>}
+          {basis.badge && <Tag tone={basis.kind === 'official' ? 'default' : 'muted'}>{basis.badge}</Tag>}
         </div>
       </div>
       <div className={`${styles.aside} ${styles.asideStack}`}>

@@ -47,7 +47,7 @@ API or data files (links below). These products change, so re-check a row before
 | Leaderboard | Ossium (contributors: search, merged pull requests, a score, "You vs the board") | `/leaderboard`: members who opt in, with search, verified ticks, "You vs the board" for the signed-in member (their rank, or where they would be), pull requests merged this month and, with a GitHub token, all time, plus pull requests and issues |
 | Open source companies backed by Y Combinator | Ossium (search, batches) | `/companies`: search, YC batch year, industry, active or all, and which are hiring |
 | Forum | Ossium (posts with likes, dislikes, reposts, an image and an organization) | `/community`: programs, help, showcase and general threads with replies; likes and dislikes (one per member), Share for reposting a link, images from GitHub or Imgur, and an optional related repository or organization; anyone can read, members post |
-| AI assistant | Ossium (Ossistant: history, "Draft a PR", web search and deleting history in Premium) | `/assistant`: explains repositories from their files, answers program questions from live dates, searches GitHub for issues when asked, drafts pull request descriptions, and keeps the last 10 chats in your browser with Delete history. Web search is built (Google Search grounding) and turns on with `GEMINI_WEB_SEARCH=1` on a Gemini plan that includes grounding; the current key's free tier does not |
+| AI assistant | Ossium (Ossistant: history, "Draft a PR", web search and deleting history in Premium) | `/assistant`: explains repositories from their files, answers program questions from live dates, searches GitHub for issues when asked, drafts pull request descriptions, keeps the last 10 chats in your browser with Delete history, and searches the web when asked: free search of Stack Overflow, Wikipedia and Hacker News, with numbered citations linked to the results it used. On a Gemini plan with Google Search grounding, `GEMINI_WEB_SEARCH=1` switches it to Google, with the free search as the fallback |
 | Guides and learning paths | Ossium, First Contributions | `/resources`: guided paths and a library; First Contributions is the practice step of the first path |
 | Community writing | Ossium (blog) | `/resources` → Fresh from DEV: the week's most-liked #opensource posts, refreshed every six hours |
 | Repository bot: welcome and goodbye messages, slash commands | Ossium (GitHub Selfbot) | `/repo-bot`: builds a GitHub Actions workflow the maintainer commits; it greets first issues and pull requests, thanks on merge, says goodbye when a pull request closes unmerged and answers commands like `/guide`, removing the command comment. It posts as github-actions[bot], or as the maintainer once they add their own token as a repository secret |
@@ -70,7 +70,7 @@ Ossium's premium page (rendered 13 October 2026) lists what Premium adds. Orion 
 | Ad-free experience | Orion shows no ads to anyone |
 | Verified tick on profile | Verified tick for members whose GitHub username comes from GitHub sign-in |
 | Custom profile banner | Members on the leaderboard pick a banner in Preferences |
-| Web search in Ossistant | Built; needs a Gemini plan with Google Search grounding (`GEMINI_WEB_SEARCH=1`) |
+| Web search in Ossistant | Free for everyone: "Search the web" reads Stack Overflow, Wikipedia and Hacker News and cites them; Google Search grounding where the Gemini plan has it (`GEMINI_WEB_SEARCH=1`) |
 | Delete history in Ossistant | Delete history, for chats kept in your browser |
 
 ## Left out on purpose

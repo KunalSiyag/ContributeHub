@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { isAIAvailable, isWebSearchEnabled } from '@/lib/gemini';
+import { isAIAvailable, isGoogleSearchEnabled } from '@/lib/gemini';
 import { EmptyState, PageHeader } from '@/components/ui/primitives';
 import { IconSparkles } from '@/components/icons';
 import AssistantClient from './AssistantClient';
@@ -25,7 +25,7 @@ export default async function AssistantPage({ searchParams }: { searchParams: Pr
         description="Ask about a repository, an issue or a program. Answers are grounded in the repository's own files and in Orion's live program dates."
       />
       {available ? (
-        <AssistantClient initialRepo={initialRepo} webSearchAvailable={isWebSearchEnabled()} />
+        <AssistantClient initialRepo={initialRepo} googleSearch={isGoogleSearchEnabled()} />
       ) : (
         <EmptyState icon={<IconSparkles size={16} />} title="The assistant is switched off">
           It needs a Google Gemini API key on the server (GOOGLE_GEMINI_API_KEY). Everything else in Orion works without it.

@@ -473,6 +473,11 @@
   align-items: end;
 }
 
+/* In a column, the lookup field's 280px flex basis would become its height. */
+.compareForm .lookupField {
+  flex: none;
+}
+
 .compareTable {
   overflow-x: auto;
   padding: 0;

@@ -180,7 +180,7 @@ export function Pills({
   children: ReactNode;
   label?: string;
   describedBy?: string;
-  /** Keep pills on one line and scroll sideways (useful on phones). */
+  /** On phones, keep pills on one line and scroll sideways; wider screens wrap. */
   scroll?: boolean;
 }) {
   return (

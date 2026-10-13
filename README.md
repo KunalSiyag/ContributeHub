@@ -16,7 +16,7 @@ in view. Every list in Orion is a live, cached GitHub query.
 | Rising repositories | `/trending` | New repositories gaining stars fastest this week, month or year, by language and topic (AI, Web3, developer tools…) |
 | Repository report | `/repos`, `/repos/:owner/:repo`, `/repos/compare` | Whether a project welcomes contributors: review speed, merge rate, activity, maintainers, good first issues and community files, scored out of 100; two side by side; a panel for maintainers on getting listed and welcoming contributors |
 | Contributor profile | `/u`, `/u/:username` | Merged pull requests, projects contributed to, languages and the contribution calendar for any GitHub account; leaderboard members also get a badge, a verified tick and the banner they pick (needs migration 10) |
-| Assistant | `/assistant` | Explains any repository from its README, layout, manifests and contributing guide, answers program questions from Orion's live dates, searches GitHub when asked to find issues, and keeps the last 10 chats in the browser (needs a Gemini key; web search also needs `GEMINI_WEB_SEARCH=1` and a plan with Google Search grounding) |
+| Assistant | `/assistant` | Explains any repository from its README, layout, manifests and contributing guide, answers program questions from Orion's live dates, searches GitHub when asked to find issues, keeps the last 10 chats in the browser, and with "Search the web" on cites Stack Overflow, Wikipedia and Hacker News results (needs a Gemini key; web search itself is free) |
 | Issue detail | `/issues/:owner/:repo/:number` | Rendered issue, repository facts, a contributor checklist and an optional AI approach draft |
 | Tracker | `/issues` | Board and list of tracked issues (Saved → Working → PR open → Merged) with drag and drop, notes, add-by-URL for any GitHub issue, saved repositories with a watchlist of their new issues |
 | Command palette | ⌘K / Ctrl K | Jump to any page, tracked issue or program, or search GitHub issues |
@@ -60,7 +60,8 @@ npm run dev                  # http://localhost:3000
 | `GITHUB_TOKEN` | strongly recommended | A classic token with no scopes, or a fine-grained token with public read-only access. Raises GitHub search from 10 to 30 requests/min and core calls from 60 to 5,000/hour, and enables the GraphQL contribution calendar. |
 | `GOOGLE_GEMINI_API_KEY` | optional | Enables AI features. They stay hidden unless the key works. |
 | `GEMINI_MODEL` | optional | Defaults to `gemini-3.5-flash-lite` |
-| `GEMINI_WEB_SEARCH` | optional | `1` shows "Search the web" in the assistant (Google Search grounding; needs a Gemini plan that includes it) |
+| `GEMINI_WEB_SEARCH` | optional | `1` makes the assistant's "Search the web" use Google Search grounding (needs a Gemini plan that includes it). Without it, web search uses the free public search of Stack Overflow, Wikipedia and Hacker News, which is also the fallback when Google refuses |
+| `STACKEXCHANGE_KEY` | optional | A free [Stack Apps](https://stackapps.com/apps/oauth/register) key (not a secret) that raises Stack Overflow's search quota for the assistant's web search from 300 to 10,000 requests a day per server IP |
 | `SUPABASE_SERVICE_ROLE_KEY` | optional | Server-only, for aggregate reads, alert email digests and unsubscribe links |
 | `NEXT_PUBLIC_SITE_URL` | production | Absolute URL used in metadata, sitemap, RSS and emails |
 | `RESEND_API_KEY`, `ALERTS_FROM_EMAIL` | for alert emails | Sends the daily alert digest through [Resend](https://resend.com) (`ALERTS_FROM_EMAIL` like `Orion <alerts@your-domain>`; set `ALERTS_EMAIL_API_URL` for another Resend-compatible API). With `SUPABASE_SERVICE_ROLE_KEY` and `CRON_SECRET` set, members can turn on email per alert |
