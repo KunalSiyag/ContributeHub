@@ -1,4 +1,5 @@
 import 'server-only';
+import { PHASE_PRODUCTION_BUILD } from 'next/constants';
 import type { Issue, Repository, SearchResponse } from '@/types';
 import { buildIssueQuery } from './issue-query';
 
@@ -71,6 +72,25 @@ export function describeReset(resetAt?: number) {
   if (!resetAt) return 'in a few minutes';
   const minutes = Math.max(1, Math.ceil((resetAt - Date.now()) / 60000));
   return minutes === 1 ? 'in about a minute' : `in about ${minutes} minutes`;
+}
+
+/**
+ * For pages cached with ISR, call before rendering a GitHub failure notice.
+ * A rate limit or outage is over in minutes, but a rendered notice would be
+ * cached for the page's whole revalidate window. While serving, this rethrows
+ * instead: a failed refresh keeps the last good copy, and Vercel tries again
+ * after 30 seconds. A build has no copy to keep, so the notice renders, and a
+ * one-minute fetch makes the route refresh soon (a route revalidates as often
+ * as its shortest fetch).
+ */
+export async function keepLastGoodPage(error: unknown): Promise<void> {
+  if (!(error instanceof GitHubError) || !(error.rateLimited || error.status >= 500)) return;
+  if (process.env.NEXT_PHASE === PHASE_PRODUCTION_BUILD) {
+    // GitHub's rate_limit endpoint doesn't count against the quota.
+    await fetch(`${GITHUB_API}/rate_limit`, { headers: headers(), next: { revalidate: 60 } }).catch(() => undefined);
+  } else if (process.env.NODE_ENV === 'production') {
+    throw error;
+  }
 }
 
 /* ------------------------------------------------------------------ */

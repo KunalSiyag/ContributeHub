@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { buildIssueQuery, buildRepoQuery, describeReset, repoFullName, searchIssues, GitHubError } from '@/lib/github';
+import { buildIssueQuery, buildRepoQuery, describeReset, keepLastGoodPage, repoFullName, searchIssues, GitHubError } from '@/lib/github';
 
 describe('buildIssueQuery', () => {
   it('builds the default good-first-issue query', () => {
@@ -77,5 +77,38 @@ describe('searchIssues', () => {
     expect(error).toBeInstanceOf(GitHubError);
     expect(error.rateLimited).toBe(true);
     expect(error.resetAt).toBe(reset * 1000);
+  });
+});
+
+describe('keepLastGoodPage', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
+
+  const limited = new GitHubError(429, 'GitHub rate limit reached.', true);
+
+  it('rethrows rate limits and outages while serving, so a cached page keeps its last good copy', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    await expect(keepLastGoodPage(limited)).rejects.toBe(limited);
+    const outage = new GitHubError(503, 'GitHub could not be reached.');
+    await expect(keepLastGoodPage(outage)).rejects.toBe(outage);
+    // Answers that won't change on a retry render as usual.
+    await expect(keepLastGoodPage(new GitHubError(422, 'GitHub rejected the search query.'))).resolves.toBeUndefined();
+    await expect(keepLastGoodPage(new Error('unrelated'))).resolves.toBeUndefined();
+  });
+
+  it('lets the build render the notice and cache it for a minute', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('NEXT_PHASE', 'phase-production-build');
+    const fetchMock = vi.fn(async () => new Response('{}'));
+    vi.stubGlobal('fetch', fetchMock);
+    await expect(keepLastGoodPage(limited)).resolves.toBeUndefined();
+    expect(fetchMock).toHaveBeenCalledWith('https://api.github.com/rate_limit', expect.objectContaining({ next: { revalidate: 60 } }));
+  });
+
+  it('never throws in development, where nothing is cached', async () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    await expect(keepLastGoodPage(limited)).resolves.toBeUndefined();
   });
 });

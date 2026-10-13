@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { fetchBounties } from '@/lib/bounties.server';
-import { GitHubError, describeReset } from '@/lib/github';
+import { GitHubError, describeReset, keepLastGoodPage } from '@/lib/github';
 import BountiesClient from './BountiesClient';
 import BountiesHeader from './BountiesHeader';
 import BountiesSkeleton from './BountiesSkeleton';
@@ -21,6 +21,7 @@ async function loadInitial(): Promise<{ initial: BountySet | null; error: Bounty
     const { bounties, partial } = await fetchBounties({ limit: BOUNTY_LIMIT });
     return { initial: { bounties, partial }, error: null };
   } catch (err) {
+    await keepLastGoodPage(err);
     if (err instanceof GitHubError && err.rateLimited) {
       return {
         initial: null,

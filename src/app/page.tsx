@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import type { CSSProperties, ReactNode } from 'react';
-import { buildIssueQuery, describeReset, getGoodFirstIssues, GitHubError } from '@/lib/github';
+import { buildIssueQuery, describeReset, getGoodFirstIssues, GitHubError, keepLastGoodPage } from '@/lib/github';
 import { fetchBounties } from '@/lib/bounties.server';
 import { computeBountyStats, featuredBounties as pickFeatured, isEstablished, type BountyIssue } from '@/lib/bounties';
 import { formatDeadlineDate, getUpcomingDeadlines } from '@/lib/events';
@@ -71,6 +71,7 @@ async function loadHome() {
     getOfficialSchedules(),
     getCurrentGsocProgram(),
   ]);
+  for (const result of [issuesResult, bountiesResult]) if (result.status === 'rejected') await keepLastGoodPage(result.reason);
   const gsocOrgs = gsoc ? await getGsocOrganizations(gsoc.year) : [];
 
   // One issue per repository keeps the landing page varied.
