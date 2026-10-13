@@ -11,6 +11,7 @@
   --line: #ebebeb;
   --line-strong: #d9d9d9;
   --code-bg: #f5f5f5; /* files shown as code (Refero: GitHub) */
+  --link-accent: #c2410c; /* Graphite's Signal Orange, darkened for contrast on light */
 
   /* Text */
   --fg: #171717;
@@ -95,7 +96,7 @@
   /* Radius */
   --r-sm: 4px;
   --r: 8px;
-  --r-lg: 12px;
+  --r-lg: 10px; /* Graphite (Refero): cards, inputs, frames never above 10px */
   --r-full: 9999px;
 
   /* Motion */
@@ -122,8 +123,9 @@
   --surface-2: #171717;
   --surface-3: #202020;
   --line: #262626;
-  --line-strong: #3a3a3a;
+  --line-strong: #464646; /* Graphite's Steel Border: emphasised and selected edges */
   --code-bg: #000000;
+  --link-accent: #ff8833; /* Graphite's Signal Orange: forward links and their arrows only */
 
   --fg: #fafafa;
   --fg-2: #d4d4d4;
@@ -132,7 +134,7 @@
 
   --primary: #e5e5e5;
   --primary-hover: #fafafa;
-  --on-primary: #0a0a0a;
+  --on-primary: #171717;
   --focus: #d4d4d4;
 
   --accent: #3fb950;

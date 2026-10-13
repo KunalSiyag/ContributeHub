@@ -1,7 +1,9 @@
 import 'server-only';
 import { formatDeadlineDate, getAllEvents } from './events';
 import { datesBasis } from './program-display';
-import { getReadmeMarkdown, getRepository, request } from './github';
+import { askPrompt, readAskResult } from './ask-search';
+import { generateJSON } from './gemini';
+import { buildIssueQuery, getReadmeMarkdown, getRepository, repoFullName, request, searchIssues } from './github';
 import { getProgramDirectory } from './program-directory';
 import { getOfficialSchedules } from './programs.server';
 
@@ -111,4 +113,30 @@ export async function programContext(now: Date = new Date()): Promise<string> {
   ]
     .filter(Boolean)
     .join('\n');
+}
+
+/** Questions that ask Orion to find issues ("find", "show me", "any … good first issues"). */
+export const SEARCH_INTENT = /\b(find|search|look(?:ing)? for|show me|suggest|recommend|any)\b[\s\S]{0,80}\b(issues?|bugs?|tasks?|first issues?)\b/i;
+
+/**
+ * Live GitHub issues for a request in plain words: the model turns it into
+ * Discover's filters (validated in ask-search), Orion runs the search, and
+ * the results travel as context. Null when nothing could be searched.
+ */
+export async function issueSearchContext(question: string): Promise<string | null> {
+  const filters = readAskResult(await generateJSON(askPrompt(question), { maxOutputTokens: 300, timeoutMs: 15000 }));
+  if (!filters) return null;
+  const query = buildIssueQuery({ preset: filters.preset, language: filters.language || undefined, text: filters.q || undefined });
+  try {
+    const { items, total_count } = await searchIssues(query, { sort: 'created', perPage: 8, revalidate: 600 });
+    if (items.length === 0) return `CONTEXT: a GitHub search (${query}) found no open issues. Suggest widening it.`;
+    const lines = items.map(issue => {
+      const repo = repoFullName(issue.repository_url);
+      const labels = issue.labels.map(label => label.name).slice(0, 4).join(', ');
+      return `- ${issue.title} (${repo}#${issue.number}; labels: ${labels || 'none'}; ${issue.comments} comments) https://github.com/${repo}/issues/${issue.number}`;
+    });
+    return `CONTEXT: a live GitHub search (${query}) found ${total_count} open issues. The newest:\n${lines.join('\n')}\nLink the issues you recommend, and mention that Discover can run this search too.`;
+  } catch {
+    return null;
+  }
 }

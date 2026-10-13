@@ -3,6 +3,9 @@
 import Link from 'next/link';
 import { useId, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { BANNERS } from '@/lib/member-card';
+import type { ProfileBanner } from '@/types/database';
+import MemberBanner from '@/components/MemberBanner';
 import { Checkbox } from '@/components/ui/Field';
 import { Panel } from '@/components/ui/primitives';
 import { useToast } from '@/components/ui/Toast';
@@ -18,6 +21,14 @@ export default function LeaderboardOptIn() {
   const headingId = useId();
   const [saving, setSaving] = useState(false);
   if (!user || !profile || !('show_on_leaderboard' in profile)) return null;
+
+  const onBanner = async (banner: ProfileBanner | null) => {
+    setSaving(true);
+    const { error } = await updateProfile({ profile_banner: banner });
+    setSaving(false);
+    if (error) toast(error, { tone: 'error' });
+    else toast(banner ? 'Banner saved to your profile' : 'Banner removed', { tone: 'success' });
+  };
 
   const onChange = async (next: boolean) => {
     setSaving(true);
@@ -46,6 +57,32 @@ export default function LeaderboardOptIn() {
           onChange={event => void onChange(event.target.checked)}
         />
       </section>
+      {profile.show_on_leaderboard && 'profile_banner' in profile && (
+        <fieldset className={styles.banners}>
+          <legend className={styles.bannersLegend}>Profile banner</legend>
+          <p className={styles.accountBody}>Shown at the top of your public profile while you’re on the leaderboard.</p>
+          <div className={styles.bannerOptions}>
+            <label className={styles.bannerOption}>
+              <input type="radio" name="profile-banner" checked={!profile.profile_banner} disabled={saving} onChange={() => void onBanner(null)} />
+              <span className={styles.bannerNone} aria-hidden="true" />
+              None
+            </label>
+            {BANNERS.map(banner => (
+              <label key={banner.id} className={styles.bannerOption}>
+                <input
+                  type="radio"
+                  name="profile-banner"
+                  checked={profile.profile_banner === banner.id}
+                  disabled={saving}
+                  onChange={() => void onBanner(banner.id)}
+                />
+                <MemberBanner banner={banner.id} className={styles.bannerPreview} />
+                {banner.label}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      )}
     </Panel>
   );
 }

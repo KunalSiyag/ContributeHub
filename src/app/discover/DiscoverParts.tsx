@@ -149,7 +149,7 @@ export function ResultsHeader({
         <div className={styles.queryLinks}>
           {actions}
           {githubUrl && (
-            <a className={styles.queryLink} href={githubUrl} target="_blank" rel="noopener noreferrer">
+            <a className={`${styles.queryLink} ${styles.forwardLink}`} href={githubUrl} target="_blank" rel="noopener noreferrer">
               View query on GitHub
               <IconArrowUpRight size={13} />
               <span className="visually-hidden"> (opens in a new tab)</span>

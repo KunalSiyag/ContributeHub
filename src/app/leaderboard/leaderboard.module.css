@@ -130,3 +130,42 @@
     display: none;
   }
 }
+
+.verified {
+  display: inline-flex;
+  margin-left: 4px;
+  vertical-align: -1px;
+  color: var(--fg-3);
+}
+
+.standing {
+  display: grid;
+  gap: var(--s-1);
+  margin-bottom: var(--s-4);
+  padding: var(--s-4) var(--s-5);
+}
+
+.standingTitle {
+  margin: 0;
+  color: var(--fg-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-eyebrow);
+  font-weight: 500;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.standingText {
+  margin: 0;
+  color: var(--fg-2);
+  font-size: var(--text-ui);
+}
+
+.standingText strong {
+  color: var(--fg);
+  font-variant-numeric: tabular-nums;
+}
+
+.standingText a {
+  color: var(--link-accent);
+}

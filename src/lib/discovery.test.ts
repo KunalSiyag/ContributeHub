@@ -166,6 +166,7 @@ describe('leaderboard ranking', () => {
     mergedAll,
     pullRequests: null,
     issues: null,
+    verified: false,
   });
 
   it('puts the most merged first and unknown counts last', () => {

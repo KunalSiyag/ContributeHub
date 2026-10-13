@@ -88,6 +88,9 @@ Styles reviewed on styles.refero.design, plus ossium.in as the brief's reference
 | The current page in the sidebar is marked with a neutral edge and fill, not green | Refero `anti-ai-slop.md` (#6 side stripes only for meaning, #8 token roles) | Selection is not success or "live"; keeping `--accent` for those keeps its meaning. |
 | Tags for attributes (program names, "Paid", a project's starter label) are neutral; green tags only for open or live states ("Accepting applications", "Hiring") | Role rules + Refero #8 | Same reason: green means something is happening now. |
 | Forum reactions are small pill toggles with a mono count, pressed = neutral fill; Share uses the system share sheet or copies the link | Linear (Refero) density + role rules | A reaction is a personal state, not a status color. |
+| Forward links ("View all →", "View query on GitHub ↗") and their arrows use Signal Orange; prose links stay neutral and underlined | Graphite (Refero, re-fetched 2026-10-13) | Graphite reserves orange for exactly this role; it brings back a primary-reference trait the earlier build had dropped. |
+| Panels, cards, lists, inputs and code surfaces at 10px; buttons at 8px | Graphite | Graphite's do/don't rules: 10px for cards, inputs and frames, 8px for rectangular buttons, nothing above 10px. |
+| Selected controls (current page, chosen banner) get the Steel Border, not a color or a side bar | Graphite | Graphite marks selection with #464646 edges. |
 
 ## Visual QA (Refero visual workflow, 2026-10-12)
 
@@ -117,6 +120,29 @@ near-black canvas, hairline rings and pale primary are intact; ALL-CAPS labels c
 the one green headline phrase ("merged pull request") means merged, the accent's own role; product
 evidence is live data, never fake screenshots. axe: clean on every page checked, in both themes.
 
+## Visual QA against Graphite (style fd36bae9, re-fetched 2026-10-13)
+
+The reference lock names Graphite as primary, so its Refero write-up was fetched again and compared token by
+token with Orion's dark theme (the theme Graphite describes).
+
+| Graphite token or rule | Graphite | Orion before | Result |
+|---|---|---|---|
+| Canvas (Obsidian) | #0a0a0a | #0a0a0a | Match |
+| Deepest surface (True Black) | #000000, media backdrops | #000000 for code surfaces | Match |
+| Elevated surface (Charcoal) | #171717 | #171717 (`--surface-2`); panels on #111111 | Kept: one extra ladder step lifts dense app panels; noted as a deviation |
+| Hairline (Graphite Edge) | #262626 | #262626 | Match |
+| Steel Border, selected controls | #464646 | #3a3a3a; current page drawn with an edge bar | **Fixed:** `--line-strong` #464646; the current page and chosen banner use it |
+| Cloud White / Fog / Ash text | #fafafa / #a1a1a1 / #737373 | #fafafa / #a1a1a1 / #808080 | Ash kept at #808080 for 4.5:1 on the canvas (accessibility over the source) |
+| Pale primary button | #e5e5e5 fill, #171717 text, inset highlight | #e5e5e5, #0a0a0a text, inset edge | **Fixed** text to #171717 |
+| Signal Orange | #ff8833, inline links and directional arrows only | unused (links neutral) | **Fixed:** `--link-accent` on forward links and their arrows only |
+| Radius | buttons 8, cards/inputs/frames 10, never above 10 | buttons 8, panels 8, cards 12, inputs 8 | **Fixed:** panels, cards, lists, inputs and code surfaces at 10 |
+| Type | matterFont/Inter, display 60/500/1/-1.5px, nav 14/500/1.43 | Geist, display 42–76/600/1.02, ui 14/1.43 | Kept (ledger: Geist from Vercel); display weight stays ≤ 600 as Graphite's don't-rule asks |
+| Spacing | 8px base, max width 1152 | 4px grid, max width 1200 | Compatible (every Graphite step is on the 4px grid) |
+| Depth | 1px #262626 borders, few soft shadows | hairline rings, overlay shadow only | Match in spirit |
+| Spectrum gradient | linework and graphic borders | hero linework, profile banner line | Match (never a surface fill) |
+
+Result after fixes: passed. Screenshots in light and dark, desktop and phone, and axe on every changed page.
+
 ## Tokens
 
 All tokens live in `src/app/globals.css`. Components use tokens, never hex.
@@ -132,14 +158,15 @@ The theme script sets `data-theme` before paint: stored `light` → light,
 | `--surface-2` | #f5f5f5 | #171717 | Hover, inset wells, skeletons |
 | `--surface-3` | #ededed | #202020 | Pressed, nested wells |
 | `--line` | #ebebeb | #262626 | Hairlines, dividers |
-| `--line-strong` | #d9d9d9 | #3a3a3a | Input borders, focus-adjacent edges |
+| `--line-strong` | #d9d9d9 | #464646 | Input borders, selected controls (Graphite's Steel Border) |
 | `--code-bg` | #f5f5f5 | #000000 | Whole files shown as code (the repo bot's workflow), after GitHub's code surface |
+| `--link-accent` | #c2410c | #ff8833 | Forward links and their arrows only ("View all →", "View query on GitHub ↗"): Graphite's Signal Orange, darkened in light for 4.5:1 |
 | `--fg` | #171717 | #fafafa | Headings, primary text |
 | `--fg-2` | #4d4d4d | #d4d4d4 | Body, descriptions |
 | `--fg-3` | #5e5e5e | #a1a1a1 | Captions, metadata |
 | `--fg-4` | #737373 | #808080 | Placeholders, separators, icons at rest (≥ 4.5:1 on canvas and cards) |
 | `--primary` | #171717 | #e5e5e5 | Filled primary button |
-| `--on-primary` | #ffffff | #0a0a0a | Text on primary |
+| `--on-primary` | #ffffff | #171717 | Text on primary |
 | `--accent` | #297a3a | #3fb950 | Success / merged / live (see role rules) |
 
 Status (data only): `--status-saved` grey, `--status-working` amber,
@@ -180,8 +207,9 @@ around them (meta lines, buttons) stays at the 13–14px scale above.
 ### Space, radius, depth
 
 - 4px grid: 4, 8, 12, 16, 20, 24, 32, 40, 48, 64, 96, 128.
-- Radius: `--r` 8px panels, buttons, inputs; `--r-lg` 12px cards and frames'
-  inner panels; `--r-sm` 4px tags and kbd; `--r-full` pills, avatars.
+- Radius: `--r` 8px buttons; `--r-lg` 10px panels, cards, lists, inputs,
+  code surfaces and frames (Graphite: never above 10px); `--r-sm` 4px tags and kbd;
+  `--r-full` pills, avatars.
 - Depth: `--ring` (1px hairline ring) on panels. No shadows except
   `--shadow-overlay`, and `.fx-glow` on the one highlighted card.
 - Marketing sections are 88–136px apart with no background shifts.

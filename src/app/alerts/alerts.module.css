@@ -187,12 +187,13 @@
   align-items: center;
   gap: 4px;
   justify-self: start;
-  color: var(--fg-3);
+  color: var(--link-accent);
   font-size: var(--text-caption);
 }
 
 .more:hover {
-  color: var(--fg);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .actions {

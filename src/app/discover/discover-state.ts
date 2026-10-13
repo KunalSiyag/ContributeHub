@@ -32,6 +32,18 @@ export const ISSUE_PRESETS = [
 ] as const;
 export type IssuePreset = (typeof ISSUE_PRESETS)[number]['value'];
 
+/** Extra labels people filter by (Ossium offers the same set); presets cover good first issue, help wanted and documentation. */
+export const ISSUE_LABELS = [
+  { value: '', label: 'Any label' },
+  { value: 'bug', label: 'Bug' },
+  { value: 'enhancement', label: 'Enhancement' },
+  { value: 'feature', label: 'Feature' },
+  { value: 'question', label: 'Question' },
+  { value: 'beginner friendly', label: 'Beginner friendly' },
+  { value: 'hacktoberfest', label: 'Hacktoberfest' },
+] as const;
+export type IssueLabel = (typeof ISSUE_LABELS)[number]['value'];
+
 export const ISSUE_SORTS = [
   { value: 'created', label: 'Newest' },
   { value: 'updated', label: 'Recently updated' },
@@ -65,6 +77,11 @@ export const TOPICS = [
   'api',
   'game',
   'security',
+  'web3',
+  'defi',
+  'smart-contracts',
+  'zero-knowledge',
+  'wallet',
 ] as const;
 
 export const PROGRAMS = [
@@ -97,11 +114,15 @@ export interface DiscoverState {
   /** GitHub linguist name, shared by all tabs. Empty means any language. */
   language: string;
   preset: IssuePreset;
+  /** One extra label for issues; empty means any. */
+  label: IssueLabel;
   issueSort: IssueSort;
   stars: StarFilter;
   topic: string;
   repoSort: RepoSort;
   program: ProgramKey;
+  /** A year the organization took part in its program (GSoC, GSSoC, Hacktoberfest, LFX); empty means any. */
+  year: string;
   orgSort: OrgSort;
 }
 
@@ -110,11 +131,13 @@ export const DEFAULT_STATE: DiscoverState = {
   q: '',
   language: '',
   preset: 'good-first',
+  label: '',
   issueSort: 'created',
   stars: '0',
   topic: '',
   repoSort: 'stars',
   program: 'all',
+  year: '',
   orgSort: 'stars',
 };
 
@@ -155,11 +178,13 @@ export function parseDiscoverState(params: ParamReader): DiscoverState {
     q,
     language: normalizeLanguage(params.get('language')),
     preset: pick(params.get('preset'), ISSUE_PRESETS, DEFAULT_STATE.preset),
+    label: pick(params.get('label'), ISSUE_LABELS, DEFAULT_STATE.label),
     issueSort: tab === 'issues' ? pick(sort, ISSUE_SORTS, DEFAULT_STATE.issueSort) : DEFAULT_STATE.issueSort,
     stars: pick(params.get('stars'), STAR_FILTERS, DEFAULT_STATE.stars),
     topic: normalizeTopic(params.get('topic')),
     repoSort: tab === 'projects' ? pick(sort, REPO_SORTS, DEFAULT_STATE.repoSort) : DEFAULT_STATE.repoSort,
     program: pick(params.get('program'), PROGRAMS, DEFAULT_STATE.program),
+    year: /^20\d\d$/.test(params.get('year') ?? '') ? (params.get('year') as string) : '',
     orgSort: tab === 'organizations' ? pick(sort, ORG_SORTS, DEFAULT_STATE.orgSort) : DEFAULT_STATE.orgSort,
   };
 }
@@ -172,6 +197,7 @@ export function toSearchString(state: DiscoverState): string {
 
   if (state.tab === 'issues') {
     if (state.preset !== DEFAULT_STATE.preset) params.set('preset', state.preset);
+    if (state.label) params.set('label', state.label);
     if (state.language) params.set('language', state.language);
     if (state.issueSort !== DEFAULT_STATE.issueSort) params.set('sort', state.issueSort);
   } else if (state.tab === 'projects') {
@@ -181,6 +207,7 @@ export function toSearchString(state: DiscoverState): string {
     if (state.repoSort !== DEFAULT_STATE.repoSort) params.set('sort', state.repoSort);
   } else {
     if (state.program !== DEFAULT_STATE.program) params.set('program', state.program);
+    if (state.year) params.set('year', state.year);
     if (state.language) params.set('language', state.language);
     if (state.orgSort !== DEFAULT_STATE.orgSort) params.set('sort', state.orgSort);
   }
@@ -210,6 +237,7 @@ export function hasActiveFilters(state: DiscoverState): boolean {
 /** Params for GET /api/issues (without `page`). */
 export function issueRequestParams(state: DiscoverState): string {
   const params = new URLSearchParams({ preset: state.preset });
+  if (state.label) params.set('labels', state.label);
   if (state.language) params.set('language', state.language);
   params.set('sort', state.issueSort);
   if (state.q) params.set('query', state.q);

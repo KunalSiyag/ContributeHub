@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { getLeaderboard, type LeaderboardWindow } from '@/lib/leaderboard.server';
+import { getLeaderboard, getMyStanding, type LeaderboardWindow } from '@/lib/leaderboard.server';
 import { Avatar, EmptyState, PageHeader, Panel } from '@/components/ui/primitives';
 import { ButtonLink } from '@/components/ui/Button';
 import { PillLink, Pills } from '@/components/ui/Tabs';
-import { IconSearch, IconTrendingUp } from '@/components/icons';
+import { IconCheckCircle, IconSearch, IconTrendingUp } from '@/components/icons';
 import styles from './leaderboard.module.css';
 
 export const metadata: Metadata = {
@@ -20,6 +20,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
   const window: LeaderboardWindow = params.window === 'all' ? 'all' : 'month';
   const q = (params.q ?? '').trim().slice(0, 60);
   const { state, entries, allTime } = await getLeaderboard(window === 'all' ? 'all' : 'month');
+  const standing = state === 'ready' ? await getMyStanding(entries, window) : null;
   const ranked = entries.map((entry, index) => ({ entry, rank: index + 1 }));
   const needle = q.toLowerCase();
   const shown = needle ? ranked.filter(({ entry }) => entry.login.toLowerCase().includes(needle) || entry.name.toLowerCase().includes(needle)) : ranked;
@@ -53,6 +54,34 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
         </EmptyState>
       ) : (
         <>
+          {standing && (
+            <Panel as="section" className={styles.standing} aria-labelledby="standing-heading">
+              <h2 id="standing-heading" className={styles.standingTitle}>
+                You vs the board
+              </h2>
+              {standing.onBoard ? (
+                <p className={styles.standingText}>
+                  <strong>
+                    #{standing.rank} of {standing.total}
+                  </strong>{' '}
+                  {window === 'all' ? 'all time' : 'this month'}, with {figure(standing.merged)} merged pull{' '}
+                  {standing.merged === 1 ? 'request' : 'requests'}.
+                </p>
+              ) : standing.rank > 0 ? (
+                <p className={styles.standingText}>
+                  With {figure(standing.merged)} merged pull {standing.merged === 1 ? 'request' : 'requests'} this month, @{standing.login} would be{' '}
+                  <strong>
+                    #{standing.rank} of {standing.total}
+                  </strong>
+                  . <Link href="/preferences">Join the leaderboard</Link> to appear here.
+                </p>
+              ) : (
+                <p className={styles.standingText}>
+                  You aren&rsquo;t on the leaderboard. <Link href="/preferences">Join it</Link> to see where you stand.
+                </p>
+              )}
+            </Panel>
+          )}
           <div className={styles.controls}>
             {allTime && (
               <Pills label="Period">
@@ -113,7 +142,15 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
                         <Link href={`/u/${entry.login}`} className={styles.member}>
                           <Avatar src={entry.avatarUrl ?? `https://github.com/${entry.login}.png?size=48`} name={entry.name} size={24} />
                           <span className={styles.who}>
-                            <span className={styles.name}>{entry.name}</span>
+                            <span className={styles.name}>
+                              {entry.name}
+                              {entry.verified && (
+                                <span className={styles.verified} title="Signed in to Orion with this GitHub account">
+                                  <IconCheckCircle size={12} aria-hidden="true" />
+                                  <span className="visually-hidden"> (verified with GitHub)</span>
+                                </span>
+                              )}
+                            </span>
                             <span className={styles.login}>@{entry.login}</span>
                           </span>
                         </Link>

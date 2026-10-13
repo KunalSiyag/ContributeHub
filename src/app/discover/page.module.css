@@ -132,6 +132,12 @@
   color: var(--fg);
 }
 
+/* Graphite (Refero): Signal Orange for forward links and their arrows. */
+.forwardLink,
+.forwardLink:hover {
+  color: var(--link-accent);
+}
+
 .queryLine {
   grid-column: 1 / -1;
   display: flex;

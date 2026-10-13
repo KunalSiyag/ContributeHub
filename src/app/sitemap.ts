@@ -20,6 +20,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ['/leaderboard', 'daily', 0.5],
     ['/repo-bot', 'monthly', 0.5],
     ['/support', 'monthly', 0.3],
+    ['/perks', 'daily', 0.5],
     ['/events', 'daily', 0.9],
     ['/bounties', 'hourly', 0.8],
     ['/resources', 'weekly', 0.7],

@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server';
-import { ASSISTANT_SYSTEM, programContext, repoMention, repositoryContext } from '@/lib/assistant';
-import { generateText, isAIAvailable, type ChatTurn } from '@/lib/gemini';
+import { ASSISTANT_SYSTEM, issueSearchContext, programContext, repoMention, repositoryContext, SEARCH_INTENT } from '@/lib/assistant';
+import { generateAnswer, isAIAvailable, isWebSearchEnabled, type ChatTurn } from '@/lib/gemini';
 import { jsonError, readJson } from '@/lib/api';
 import { allowRequest, clientKey } from '@/lib/rate-limit';
 
 interface Body {
   messages?: unknown;
   repo?: unknown;
+  /** Ground the answer in a Google search (when the site enables it). */
+  webSearch?: unknown;
 }
 
 const MAX_TURNS = 12;
@@ -37,19 +39,33 @@ export async function POST(request: Request) {
   const explicit = typeof body?.repo === 'string' && /^[\w.-]+\/[\w.-]+$/.test(body.repo) ? body.repo : null;
   const repo = explicit ?? repoMention(last.text) ?? [...turns].reverse().map(turn => repoMention(turn.text)).find(Boolean) ?? null;
   const conversation = turns.map(turn => turn.text).join('\n');
-  const [repoText, programText] = await Promise.all([
+  const [repoText, programText, issuesText] = await Promise.all([
     repo ? repositoryContext(repo) : Promise.resolve(null),
     PROGRAM_WORDS.test(conversation) ? programContext() : Promise.resolve(null),
+    SEARCH_INTENT.test(last.text) ? issueSearchContext(last.text) : Promise.resolve(null),
   ]);
 
-  const context = [repoText ?? (repo ? `CONTEXT: the repository ${repo} could not be found on GitHub.` : null), programText]
+  const context = [repoText ?? (repo ? `CONTEXT: the repository ${repo} could not be found on GitHub.` : null), programText, issuesText]
     .filter(Boolean)
     .join('\n\n');
   const grounded: ChatTurn[] = context
     ? [...turns.slice(0, -1), { role: 'user', text: `${last.text}\n\n---\n${context}` }]
     : turns;
 
-  const reply = await generateText(ASSISTANT_SYSTEM, grounded, { maxOutputTokens: 1400 });
-  if (!reply) return NextResponse.json({ available: false });
-  return NextResponse.json({ available: true, reply, repo: repoText ? repo : null }, { headers: { 'Cache-Control': 'no-store' } });
+  // Web search when asked for and enabled; if Google refuses (quota, plan), answer without it.
+  const wantsWeb = body?.webSearch === true && isWebSearchEnabled();
+  const searched = wantsWeb ? await generateAnswer(ASSISTANT_SYSTEM, grounded, { maxOutputTokens: 1400, webSearch: true }) : null;
+  const answer = searched ?? (await generateAnswer(ASSISTANT_SYSTEM, grounded, { maxOutputTokens: 1400 }));
+  if (!answer) return NextResponse.json({ available: false });
+  return NextResponse.json(
+    {
+      available: true,
+      reply: answer.text,
+      repo: repoText ? repo : null,
+      sources: answer.sources,
+      searchedIssues: Boolean(issuesText),
+      webSearch: wantsWeb ? (searched ? 'used' : 'unavailable') : 'off',
+    },
+    { headers: { 'Cache-Control': 'no-store' } }
+  );
 }

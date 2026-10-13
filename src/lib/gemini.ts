@@ -75,15 +75,38 @@ export interface ChatTurn {
   text: string;
 }
 
+export interface WebSource {
+  title: string;
+  url: string;
+}
+
+/** Web pages a grounded answer drew on (Gemini's groundingMetadata), deduplicated. */
+export function readSources(candidate: unknown): WebSource[] {
+  const chunks = (candidate as { groundingMetadata?: { groundingChunks?: Array<{ web?: { uri?: unknown; title?: unknown } }> } } | null)?.groundingMetadata
+    ?.groundingChunks;
+  if (!Array.isArray(chunks)) return [];
+  const seen = new Set<string>();
+  const sources: WebSource[] = [];
+  for (const chunk of chunks) {
+    const url = typeof chunk.web?.uri === 'string' ? chunk.web.uri : '';
+    if (!/^https:\/\//.test(url) || seen.has(url)) continue;
+    seen.add(url);
+    sources.push({ title: typeof chunk.web?.title === 'string' && chunk.web.title.trim() ? chunk.web.title.trim().slice(0, 120) : new URL(url).hostname, url });
+  }
+  return sources.slice(0, 8);
+}
+
 /**
  * A plain-text (Markdown) reply to a conversation, steered by a system
- * instruction. Returns null on any failure, like generateJSON.
+ * instruction, with the web pages it used when `webSearch` grounds it in
+ * Google Search (needs a Gemini plan with search grounding). Null on any
+ * failure, like generateJSON.
  */
-export async function generateText(
+export async function generateAnswer(
   system: string,
   turns: ChatTurn[],
-  { maxOutputTokens = 1200, timeoutMs = 30000, temperature = 0.3 } = {}
-): Promise<string | null> {
+  { maxOutputTokens = 1200, timeoutMs = 30000, temperature = 0.3, webSearch = false } = {}
+): Promise<{ text: string; sources: WebSource[] } | null> {
   const key = process.env.GOOGLE_GEMINI_API_KEY;
   if (!key || turns.length === 0) return null;
 
@@ -95,25 +118,35 @@ export async function generateText(
         systemInstruction: { parts: [{ text: system }] },
         contents: turns.map(turn => ({ role: turn.role, parts: [{ text: turn.text }] })),
         generationConfig: { temperature, maxOutputTokens },
+        ...(webSearch && { tools: [{ google_search: {} }] }),
       }),
       signal: AbortSignal.timeout(timeoutMs),
       cache: 'no-store',
     });
     if (!response.ok) {
-      console.warn(`Gemini request failed (${response.status}) for model ${GEMINI_MODEL}`);
+      console.warn(`Gemini request failed (${response.status}) for model ${GEMINI_MODEL}${webSearch ? ' with web search' : ''}`);
       return null;
     }
     const data = await response.json();
-    const text: string = (data?.candidates?.[0]?.content?.parts ?? [])
+    const candidate = data?.candidates?.[0];
+    const text: string = (candidate?.content?.parts ?? [])
       .map((part: { text?: string }) => part.text ?? '')
       .join('')
       .trim();
-    return text || null;
+    return text ? { text, sources: webSearch ? readSources(candidate) : [] } : null;
   } catch (err) {
     console.warn('Gemini request error:', err instanceof Error ? err.message : err);
     return null;
   }
 }
+
+/** generateAnswer without sources. */
+export async function generateText(system: string, turns: ChatTurn[], options: { maxOutputTokens?: number; timeoutMs?: number; temperature?: number } = {}) {
+  return (await generateAnswer(system, turns, options))?.text ?? null;
+}
+
+/** Web search in the assistant is opt-in: Google Search grounding needs a paid Gemini plan. */
+export const isWebSearchEnabled = () => process.env.GEMINI_WEB_SEARCH === '1' && isAIConfigured();
 
 const strings = (value: unknown, max = 15) =>
   Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string').map(v => v.trim()).filter(Boolean).slice(0, max) : [];

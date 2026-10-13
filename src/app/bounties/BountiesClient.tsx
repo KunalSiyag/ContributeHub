@@ -10,7 +10,7 @@ import { Checkbox, SearchInput, Select, Toolbar, toolbarClasses } from '@/compon
 import { Segmented } from '@/components/ui/Tabs';
 import { EmptyState, Notice } from '@/components/ui/primitives';
 import rows from '@/components/rows.module.css';
-import { ESTABLISHED_STARS, isEstablished, sortBounties, type BountyIssue, type BountySource } from '@/lib/bounties';
+import { ESTABLISHED_STARS, isEstablished, sortBounties, type BountyIssue, type BountySort, type BountySource } from '@/lib/bounties';
 import { POPULAR_LANGUAGES } from '@/lib/matching';
 import BountyStats, { summarizeBounties } from './BountyStats';
 import { BOUNTY_LIMIT, type BountyLoadError, type BountySet } from './types';
@@ -22,7 +22,7 @@ const FETCH_DELAY = 300;
 /** Automatic retries per result set after a rate limit lifts. */
 const MAX_AUTO_RETRIES = 2;
 
-type Sort = 'amount' | 'recent' | 'comments';
+type Sort = BountySort;
 
 interface Filters {
   source: BountySource;
@@ -37,10 +37,12 @@ type Entry = { status: 'ready'; set: BountySet } | { status: 'error'; error: Bou
 
 const SOURCE_LABEL: Record<BountySource, string> = { all: 'All', github: 'GitHub', algora: 'Algora' };
 const SOURCE_OPTIONS = (['all', 'github', 'algora'] as const).map(value => ({ value, label: SOURCE_LABEL[value] }));
-const SORT_OPTIONS = [
+const SORT_OPTIONS: Array<{ value: BountySort; label: string }> = [
   { value: 'amount', label: 'Highest reward' },
   { value: 'recent', label: 'Recently updated' },
   { value: 'comments', label: 'Most discussed' },
+  { value: 'newest', label: 'Newest' },
+  { value: 'oldest', label: 'Oldest' },
 ];
 
 const keyFor = (source: BountySource, language: string) => `${source}|${language.toLowerCase()}`;
@@ -53,7 +55,7 @@ function readFilters(params: { get(name: string): string | null }): Filters {
   return {
     source: source === 'github' || source === 'algora' ? source : 'all',
     language: POPULAR_LANGUAGES.find(known => known.toLowerCase() === language.toLowerCase()) ?? language,
-    sort: params.get('sort') === 'recent' ? 'recent' : params.get('sort') === 'comments' ? 'comments' : 'amount',
+    sort: SORT_OPTIONS.find(option => option.value === params.get('sort'))?.value ?? 'amount',
     unclaimed: params.get('unclaimed') !== '0',
     established: params.get('repos') !== 'all',
   };
@@ -414,7 +416,7 @@ export default function BountiesClient({ initial, initialError }: BountiesClient
           aria-label="Sort bounties"
           options={SORT_OPTIONS}
           value={filters.sort}
-          onChange={event => update({ sort: event.target.value === 'recent' || event.target.value === 'comments' ? event.target.value : 'amount' })}
+          onChange={event => update({ sort: SORT_OPTIONS.find(option => option.value === event.target.value)?.value ?? 'amount' })}
           wrapperClassName={styles.select}
         />
         <Checkbox

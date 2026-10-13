@@ -21,6 +21,7 @@ import {
   IconColumns,
   IconCompass,
   IconFileText,
+  IconGift,
   IconHome,
   IconSearch,
   IconSettings,
@@ -61,6 +62,7 @@ const PAGES: Command[] = [
   { id: 'p-programs', group: 'Go to', label: 'Programs & deadlines', icon: <IconCalendar size={15} />, href: '/events', keywords: 'events gsoc hacktoberfest outreachy' },
   { id: 'p-bounties', group: 'Go to', label: 'Bounties', icon: <IconCoins size={15} />, href: '/bounties', keywords: 'paid money rewards' },
   { id: 'p-resources', group: 'Go to', label: 'Resources', icon: <IconBookOpen size={15} />, href: '/resources', keywords: 'learn guides' },
+  { id: 'p-perks', group: 'Go to', label: 'Perks for open source', icon: <IconGift size={15} />, href: '/perks', keywords: 'free credits tools discounts programs maintainers' },
   { id: 'p-resume', group: 'Go to', label: 'Resume match', icon: <IconFileText size={15} />, href: '/resume', keywords: 'cv skills' },
   { id: 'p-prefs', group: 'Go to', label: 'Preferences', icon: <IconSettings size={15} />, href: '/preferences', keywords: 'skills languages settings' },
 ];

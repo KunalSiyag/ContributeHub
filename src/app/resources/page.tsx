@@ -39,7 +39,7 @@ export default async function ResourcesPage() {
       </section>
 
       <section id="library" className={styles.library} aria-labelledby="library-heading">
-        <SectionHead title="Library" id="library-heading" count={RESOURCES.length} />
+        <SectionHead title="Library" id="library-heading" count={RESOURCES.length} href="/perks" linkLabel="All perks for open source" />
         <ResourceLibrary />
       </section>
 

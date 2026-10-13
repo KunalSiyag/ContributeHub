@@ -39,7 +39,7 @@ interface OrganizationsPanelProps {
 
 export default function OrganizationsPanel({ state, search, setFilters, clearFilters, organizations, view }: OrganizationsPanelProps) {
   const { data, loading, error, retry } = organizations;
-  const { visible, programCounts, languages } = view;
+  const { visible, programCounts, languages, years } = view;
 
   const meta = data?.meta;
   // Only organizations with a GitHub repository can have live stats; rate
@@ -65,6 +65,15 @@ export default function OrganizationsPanel({ state, search, setFilters, clearFil
             options={languageOptions(state.language, languages)}
             onChange={language => setFilters({ language })}
           />
+          {years.length > 0 && (
+            <SelectField
+              id="discover-org-year"
+              label="Year they took part"
+              value={state.year}
+              options={[{ value: '', label: 'Any year' }, ...years.map(year => ({ value: year, label: `Took part in ${year}` }))]}
+              onChange={year => setFilters({ year })}
+            />
+          )}
           <SelectField
             id="discover-org-sort"
             label="Sort organizations"

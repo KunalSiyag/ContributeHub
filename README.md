@@ -15,15 +15,16 @@ in view. Every list in Orion is a live, cached GitHub query.
 | Open source companies | `/companies` | Y Combinator companies with open source products (yc-oss): search, batch year, industry, and which are hiring |
 | Rising repositories | `/trending` | New repositories gaining stars fastest this week, month or year, by language and topic (AI, Web3, developer tools…) |
 | Repository report | `/repos`, `/repos/:owner/:repo`, `/repos/compare` | Whether a project welcomes contributors: review speed, merge rate, activity, maintainers, good first issues and community files, scored out of 100; two side by side; a panel for maintainers on getting listed and welcoming contributors |
-| Contributor profile | `/u`, `/u/:username` | Merged pull requests, projects contributed to, languages and the contribution calendar for any GitHub account |
-| Assistant | `/assistant` | Explains any repository from its README, layout, manifests and contributing guide, and answers program questions from Orion's live dates (needs a Gemini key) |
+| Contributor profile | `/u`, `/u/:username` | Merged pull requests, projects contributed to, languages and the contribution calendar for any GitHub account; leaderboard members also get a badge, a verified tick and the banner they pick (needs migration 10) |
+| Assistant | `/assistant` | Explains any repository from its README, layout, manifests and contributing guide, answers program questions from Orion's live dates, searches GitHub when asked to find issues, and keeps the last 10 chats in the browser (needs a Gemini key; web search also needs `GEMINI_WEB_SEARCH=1` and a plan with Google Search grounding) |
 | Issue detail | `/issues/:owner/:repo/:number` | Rendered issue, repository facts, a contributor checklist and an optional AI approach draft |
 | Tracker | `/issues` | Board and list of tracked issues (Saved → Working → PR open → Merged) with drag and drop, notes, add-by-URL for any GitHub issue, saved repositories with a watchlist of their new issues |
 | Command palette | ⌘K / Ctrl K | Jump to any page, tracked issue or program, or search GitHub issues |
 | Overview | `/dashboard` | Pipeline counts, next deadlines, GitHub pull requests and contribution calendar, recommendations |
 | Programs | `/events`, `/events/:slug` | Countdowns, a 12-month timeline and key dates (official for GSoC, LFX and Outreachy), open LFX mentorships, live program issues, and a directory of 25+ more programs |
 | Bounties | `/bounties` | Open issues with a stated reward, filterable by source, language and claim status; reposts and brand-new repositories are hidden by default |
-| Resources | `/resources` | Guided paths, a curated library and perks for students and maintainers |
+| Resources | `/resources` | Guided paths, a curated library, and DEV's most-liked #opensource posts of the week |
+| Perks | `/perks` | Free plans, credits and programs for open source projects: the 54 offers in Awesome OSS Perks (CC0, read daily) plus the ones Orion checked by hand |
 | Community | `/community` | Discussions about programs, getting unstuck and shipped work, with replies, likes and dislikes, sharing, images from GitHub or Imgur and a related repository; anyone can read, members post (needs migrations 07 and 09) |
 | Leaderboard | `/leaderboard` | Members who opt in from Preferences, with search, ranked by pull requests merged this month or (with `GITHUB_TOKEN`) all time, plus pull requests and issues (needs migration 07) |
 | Alerts | `/alerts` | Saved issue searches: new-match counts in the sidebar, browser notifications, an RSS feed each (`/feed/alerts.xml`) and an optional daily email digest (needs migration 08; email needs the variables below). Discover's "Create alert" starts one from any search |
@@ -59,6 +60,7 @@ npm run dev                  # http://localhost:3000
 | `GITHUB_TOKEN` | strongly recommended | A classic token with no scopes, or a fine-grained token with public read-only access. Raises GitHub search from 10 to 30 requests/min and core calls from 60 to 5,000/hour, and enables the GraphQL contribution calendar. |
 | `GOOGLE_GEMINI_API_KEY` | optional | Enables AI features. They stay hidden unless the key works. |
 | `GEMINI_MODEL` | optional | Defaults to `gemini-3.5-flash-lite` |
+| `GEMINI_WEB_SEARCH` | optional | `1` shows "Search the web" in the assistant (Google Search grounding; needs a Gemini plan that includes it) |
 | `SUPABASE_SERVICE_ROLE_KEY` | optional | Server-only, for aggregate reads, alert email digests and unsubscribe links |
 | `NEXT_PUBLIC_SITE_URL` | production | Absolute URL used in metadata, sitemap, RSS and emails |
 | `RESEND_API_KEY`, `ALERTS_FROM_EMAIL` | for alert emails | Sends the daily alert digest through [Resend](https://resend.com) (`ALERTS_FROM_EMAIL` like `Orion <alerts@your-domain>`; set `ALERTS_EMAIL_API_URL` for another Resend-compatible API). With `SUPABASE_SERVICE_ROLE_KEY` and `CRON_SECRET` set, members can turn on email per alert |
@@ -72,7 +74,8 @@ npm run dev                  # http://localhost:3000
   `06_google_sign_in.sql`, then `07_community.sql` (the community forum: public reads, members post as
   themselves, an hourly cap per member; and the opt-in leaderboard), then `08_alerts.sql` (issue alerts:
   members see and change only their own, ten each), then `09_forum_reactions.sql` (likes and dislikes on
-  discussions, one per member, and an optional related repository or organization). 05 adds the missing profile columns, fixes the signup trigger, backfills profiles,
+  discussions, one per member, and an optional related repository or organization), then
+  `10_member_cards.sql` (profile banners and verified ticks for members on the leaderboard). 05 adds the missing profile columns, fixes the signup trigger, backfills profiles,
   makes profiles readable only by their owner, adds the `saved_repos` update policy and closes the waitlist
   read policy. 06 keeps Google accounts out of the GitHub columns. Both are safe to run more than once.
 

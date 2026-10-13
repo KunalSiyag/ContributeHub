@@ -180,3 +180,71 @@
     justify-content: flex-end;
   }
 }
+
+/* ---------- Profile banner picker ---------- */
+
+.banners {
+  display: grid;
+  gap: var(--s-2);
+  margin: 0;
+  padding: var(--s-4) var(--s-5) var(--s-5);
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+
+.bannersLegend {
+  float: left;
+  width: 100%;
+  margin-bottom: var(--s-1);
+  color: var(--fg);
+  font-size: var(--text-ui);
+  font-weight: 500;
+}
+
+.bannerOptions {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--s-3);
+}
+
+.bannerOption {
+  display: grid;
+  gap: var(--s-2);
+  color: var(--fg-2);
+  font-size: var(--text-caption);
+  cursor: pointer;
+}
+
+.bannerOption input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.bannerPreview,
+.bannerNone {
+  height: 48px;
+  border-radius: var(--r);
+}
+
+.bannerNone {
+  display: block;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+/* Graphite: a selected control gets the Steel Border. */
+.bannerOption:has(input:checked) .bannerPreview,
+.bannerOption:has(input:checked) .bannerNone {
+  box-shadow: inset 0 0 0 1px var(--line-strong), 0 0 0 1px var(--line-strong);
+}
+
+.bannerOption:has(input:checked) {
+  color: var(--fg);
+}
+
+.bannerOption:has(input:focus-visible) .bannerPreview,
+.bannerOption:has(input:focus-visible) .bannerNone {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}

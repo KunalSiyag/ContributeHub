@@ -64,6 +64,7 @@ export default function SiteFooter({ compact = false }: { compact?: boolean }) {
               <Link href="/companies">Open source companies</Link>
               <Link href="/community">Community</Link>
               <Link href="/resources">Resources</Link>
+              <Link href="/perks">Perks for open source</Link>
             </nav>
 
             <nav className={styles.footerCol} aria-label="Programs">

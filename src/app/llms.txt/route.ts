@@ -23,6 +23,7 @@ export function GET() {
 - [Contributor profiles](${site}/u): merged pull requests and projects for any GitHub account. Per account: ${site}/u/{username}
 - [Assistant](${site}/assistant): explains repositories and answers program questions, grounded in repository files and program data.
 - [Resources](${site}/resources): guides, communities and perks for students and maintainers.
+- [Perks for open source](${site}/perks): free plans, credits and programs for open source projects, refreshed daily from Awesome OSS Perks (CC0).
 - [Community](${site}/community): discussions about programs, issues and shipped work. Anyone can read; members post.
 - [Leaderboard](${site}/leaderboard): members who opted in, ranked by pull requests merged in the last 30 days.
 - [Alerts](${site}/alerts): saved issue searches with new-match counts, browser notifications, an RSS feed each and an optional daily email (members).

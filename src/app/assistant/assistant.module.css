@@ -169,6 +169,8 @@
 
 .composerActions {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: flex-end;
   gap: var(--s-2);
 }
@@ -186,4 +188,47 @@
   .log {
     padding: var(--s-4);
   }
+}
+
+.actionsSpacer {
+  flex: 1;
+}
+
+.webToggle {
+  font-size: var(--text-caption);
+}
+
+.turnNote {
+  margin: var(--s-2) 0 0;
+  color: var(--fg-3);
+  font-size: var(--text-meta);
+}
+
+/* Web sources under a grounded answer. */
+.sources {
+  display: grid;
+  gap: var(--s-1);
+  margin-top: var(--s-3);
+  padding-top: var(--s-2);
+  border-top: 1px solid var(--line);
+}
+
+.sourcesLabel {
+  color: var(--fg-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-eyebrow);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.sourceList {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding-left: 1.2rem;
+  font-size: var(--text-caption);
+}
+
+.sourceList a {
+  color: var(--link-accent);
 }

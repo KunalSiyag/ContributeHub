@@ -150,23 +150,12 @@
   color: var(--fg);
 }
 
+/* Graphite marks selected controls with the Steel Border (--line-strong), not color: green stays for success and "live". */
 .navItem[aria-current='page'] {
   background: var(--surface-2);
   color: var(--fg);
   font-weight: 500;
-  box-shadow: var(--ring);
-}
-
-/* A neutral edge marks the current page: it is a selection, and green is kept for success and "live". */
-.navItem[aria-current='page']::before {
-  content: '';
-  position: absolute;
-  top: 8px;
-  bottom: 8px;
-  left: 0;
-  width: 2px;
-  border-radius: 2px;
-  background: var(--fg);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
 }
 
 .navIcon {

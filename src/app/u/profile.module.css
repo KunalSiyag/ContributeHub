@@ -223,3 +223,18 @@
     justify-self: start;
   }
 }
+
+.banner {
+  margin-bottom: calc(var(--s-5) * -1);
+}
+
+/* Members: a quiet badge; the tick is neutral, since it is identity, not status. */
+.member {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  color: var(--fg-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+}

@@ -148,10 +148,14 @@ export function computeBountyStats(bounties: BountyIssue[]): BountyStats {
   };
 }
 
-export function sortBounties(list: BountyIssue[], by: 'amount' | 'recent' | 'comments' = 'amount'): BountyIssue[] {
+export type BountySort = 'amount' | 'recent' | 'comments' | 'newest' | 'oldest';
+
+export function sortBounties(list: BountyIssue[], by: BountySort = 'amount'): BountyIssue[] {
   return [...list].sort((a, b) => {
     if (by === 'amount' && (a.bountyValue > 0 || b.bountyValue > 0)) return b.bountyValue - a.bountyValue;
     if (by === 'comments' && a.comments !== b.comments) return b.comments - a.comments;
+    if (by === 'newest') return b.createdAt.localeCompare(a.createdAt);
+    if (by === 'oldest') return a.createdAt.localeCompare(b.createdAt);
     return (b.updatedAt ?? b.createdAt).localeCompare(a.updatedAt ?? a.createdAt);
   });
 }

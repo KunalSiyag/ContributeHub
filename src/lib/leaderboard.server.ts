@@ -1,6 +1,6 @@
 import 'server-only';
 import { countIssues } from './github';
-import { createAnonClient, isSupabaseConfigured } from './supabase/server';
+import { createAnonClient, createClient, isSupabaseConfigured } from './supabase/server';
 
 export interface LeaderboardEntry {
   login: string;
@@ -12,6 +12,8 @@ export interface LeaderboardEntry {
   mergedAll: number | null;
   pullRequests: number | null;
   issues: number | null;
+  /** Signed in with this GitHub account (migration 10); false before it or otherwise. */
+  verified: boolean;
 }
 
 export type LeaderboardState = 'ready' | 'not-configured' | 'not-set-up' | 'unavailable';
@@ -107,8 +109,42 @@ export async function getLeaderboard(by: LeaderboardWindow = 'month'): Promise<{
         mergedAll: stats?.mergedAll ?? null,
         pullRequests: stats?.pullRequests ?? null,
         issues: stats?.issues ?? null,
+        verified: Boolean(member.verified),
       };
     })
   );
   return { state: 'ready', entries: rankEntries(entries, by), allTime: graph !== null };
+}
+
+export interface Standing {
+  login: string;
+  /** On the leaderboard now, or where they would be. */
+  onBoard: boolean;
+  rank: number;
+  merged: number | null;
+  total: number;
+}
+
+/** Where a figure would place among the board's entries (ties share the better rank). */
+export function rankFor(value: number | null, entries: LeaderboardEntry[], by: LeaderboardWindow = 'month') {
+  const score = (entry: LeaderboardEntry) => (by === 'all' ? entry.mergedAll : entry.merged) ?? -1;
+  return 1 + entries.filter(entry => score(entry) > (value ?? -1)).length;
+}
+
+/** "You vs the board" for the signed-in member: their rank, or where they would be if they joined. */
+export async function getMyStanding(entries: LeaderboardEntry[], by: LeaderboardWindow): Promise<Standing | null> {
+  if (!isSupabaseConfigured()) return null;
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+  const { data: profile } = await supabase.from('profiles').select('github_username').eq('id', user.id).maybeSingle();
+  const login = profile?.github_username;
+  if (!login || !LOGIN.test(login)) return null;
+  const mine = entries.findIndex(entry => entry.login.toLowerCase() === login.toLowerCase());
+  if (mine >= 0) return { login, onBoard: true, rank: mine + 1, merged: by === 'all' ? entries[mine].mergedAll : entries[mine].merged, total: entries.length };
+  if (by === 'all') return { login, onBoard: false, rank: 0, merged: null, total: entries.length };
+  const merged = await countIssues(`author:${login} is:pr is:merged merged:>=${windowStart()}`, 21600);
+  return { login, onBoard: false, rank: rankFor(merged, entries, by), merged, total: entries.length + 1 };
 }

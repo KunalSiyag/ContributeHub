@@ -104,7 +104,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: var(--fg);
+  color: var(--link-accent);
   text-decoration: underline;
   text-decoration-color: var(--line-strong);
   text-underline-offset: 3px;

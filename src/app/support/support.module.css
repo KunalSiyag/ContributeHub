@@ -54,7 +54,7 @@
   grid-column: 2;
   grid-row: 1 / span 2;
   align-self: center;
-  color: var(--fg-4);
+  color: var(--link-accent);
 }
 
 .free {

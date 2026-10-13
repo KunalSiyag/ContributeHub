@@ -184,20 +184,21 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: var(--fg-3);
+  color: var(--link-accent);
   font-size: var(--text-caption);
   transition: color var(--dur-fast) var(--ease-out);
 }
 
 .sectionLink:hover {
-  color: var(--fg);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 /* ---------- Panel ---------- */
 
 .panel {
   background: var(--surface);
-  border-radius: var(--r);
+  border-radius: var(--r-lg);
   box-shadow: var(--ring);
 }
 

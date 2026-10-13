@@ -4,6 +4,8 @@
 
 export type DiscussionCategory = 'general' | 'programs' | 'help' | 'showcase';
 
+export type ProfileBanner = 'graphite' | 'spectrum' | 'merged' | 'night';
+
 export type AlertPreset = 'good-first' | 'help-wanted' | 'first-timers' | 'docs' | 'unassigned' | 'all';
 
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
@@ -32,6 +34,7 @@ export type Database = {
           technologies: string[];
           resume_analyzed_at: string | null;
           show_on_leaderboard: boolean;
+          profile_banner: ProfileBanner | null;
           created_at: string;
           updated_at: string;
         };
@@ -50,6 +53,7 @@ export type Database = {
           technologies?: string[];
           resume_analyzed_at?: string | null;
           show_on_leaderboard?: boolean;
+          profile_banner?: ProfileBanner | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -275,7 +279,12 @@ export type Database = {
     Functions: {
       leaderboard_members: {
         Args: Record<string, never>;
-        Returns: Array<{ github_username: string; display_name: string; avatar_url: string | null }>;
+        /** `verified` arrives with migration 10. */
+        Returns: Array<{ github_username: string; display_name: string; avatar_url: string | null; verified?: boolean }>;
+      };
+      member_card: {
+        Args: { login: string };
+        Returns: Array<{ github_username: string; display_name: string; avatar_url: string | null; profile_banner: ProfileBanner | null; verified: boolean }>;
       };
       get_active_contributors: {
         Args: { limit_count?: number };

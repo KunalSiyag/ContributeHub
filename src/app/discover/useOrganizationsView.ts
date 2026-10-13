@@ -11,6 +11,8 @@ export interface OrganizationsView {
   programCounts: Map<ProgramKey, number>;
   /** Languages present in the roster, for the language select. */
   languages: string[];
+  /** Participation years present in the roster, newest first, for the year select. */
+  years: string[];
 }
 
 const EMPTY: EnrichedOrganization[] = [];
@@ -49,11 +51,11 @@ function sortOrganizations(list: EnrichedOrganization[], sort: OrgSort) {
  */
 export function useOrganizationsView(
   organizations: EnrichedOrganization[] | undefined,
-  state: Pick<DiscoverState, 'language' | 'program' | 'orgSort'>,
+  state: Pick<DiscoverState, 'language' | 'program' | 'orgSort' | 'year'>,
   text: string
 ): OrganizationsView {
   const all = organizations ?? EMPTY;
-  const { language, program, orgSort } = state;
+  const { language, program, orgSort, year } = state;
 
   const languages = useMemo(
     () =>
@@ -63,11 +65,21 @@ export function useOrganizationsView(
     [all]
   );
 
+  const years = useMemo(
+    () => Array.from(new Set(all.flatMap(org => org.participationYears ?? []))).sort((a, b) => b - a).map(String),
+    [all]
+  );
+
   const candidates = useMemo(() => {
     const terms = text.toLowerCase().split(/\s+/).filter(Boolean);
     const wanted = language.toLowerCase();
-    return all.filter(org => (!wanted || org.language?.toLowerCase() === wanted) && matchesTerms(org, terms));
-  }, [all, language, text]);
+    return all.filter(
+      org =>
+        (!wanted || org.language?.toLowerCase() === wanted) &&
+        (!year || (org.participationYears ?? []).includes(Number(year))) &&
+        matchesTerms(org, terms)
+    );
+  }, [all, language, text, year]);
 
   const programCounts = useMemo(
     () => new Map(PROGRAMS.map(entry => [entry.value, candidates.filter(org => inProgram(org, entry.value)).length])),
@@ -79,5 +91,5 @@ export function useOrganizationsView(
     [candidates, program, orgSort]
   );
 
-  return { visible, programCounts, languages };
+  return { visible, programCounts, languages, years };
 }

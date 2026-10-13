@@ -13,6 +13,7 @@ import { EmptyState, Notice, Panel } from '@/components/ui/primitives';
 import { IconBell, IconRss } from '@/components/icons';
 import rows from '@/components/rows.module.css';
 import {
+  ISSUE_LABELS,
   ISSUE_PRESETS,
   ISSUE_SORTS,
   formatTotal,
@@ -67,6 +68,7 @@ export default function IssuesPanel({ state, search, setFilters, clearFilters, r
             options={languageOptions(state.language)}
             onChange={language => setFilters({ language })}
           />
+          <SelectField id="discover-issue-label" label="Label" value={state.label} options={ISSUE_LABELS} onChange={label => setFilters({ label })} />
           <SelectField
             id="discover-issue-sort"
             label="Sort issues"

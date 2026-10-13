@@ -25,7 +25,7 @@ export interface RepoBotConfig {
   maintainersOnly: boolean;
 }
 
-export const REPO_BOT_LIMITS = { message: 2000, commands: 10 };
+export const REPO_BOT_LIMITS = { message: 2000, commands: 50 };
 
 export const REPO_BOT_DEFAULTS: RepoBotConfig = {
   welcomeIssue:

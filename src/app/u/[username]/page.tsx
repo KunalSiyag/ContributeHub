@@ -5,13 +5,15 @@ import { Suspense } from 'react';
 import { GitHubError } from '@/lib/github';
 import { isGitHubUsername } from '@/lib/identity';
 import { getContributionCalendar } from '@/lib/contributions';
+import { getMemberCard } from '@/lib/member-card.server';
 import { getPublicProfile, type PublicProfile } from '@/lib/profile';
 import { formatNumber } from '@/lib/utils';
 import ContributionHeatmap from '@/app/dashboard/ContributionHeatmap';
+import MemberBanner from '@/components/MemberBanner';
 import RelativeTime from '@/components/RelativeTime';
 import { ButtonAnchor } from '@/components/ui/Button';
 import { Avatar, EmptyState, LanguageDot, Notice, Panel, SectionHead, Skeleton } from '@/components/ui/primitives';
-import { IconArrowLeft, IconArrowUpRight, IconGitPullRequest, IconMapPin } from '@/components/icons';
+import { IconArrowLeft, IconArrowUpRight, IconCheckCircle, IconGitPullRequest, IconMapPin } from '@/components/icons';
 import rows from '@/components/rows.module.css';
 import styles from '../profile.module.css';
 
@@ -64,6 +66,8 @@ export default async function ProfilePage({ params }: { params: Promise<Params> 
 
   const { profile } = loaded;
   const { user } = profile;
+  // Members who opted in to the leaderboard get their banner and a member badge.
+  const card = await getMemberCard(user.login);
   const external = profile.repositories.reduce((sum, repo) => sum + repo.count, 0);
 
   return (
@@ -72,10 +76,17 @@ export default async function ProfilePage({ params }: { params: Promise<Params> 
         <IconArrowLeft size={14} /> Contributor profiles
       </Link>
 
+      {card?.banner && <MemberBanner banner={card.banner} className={styles.banner} />}
       <header className={styles.header}>
         <Avatar src={user.avatarUrl} name={user.login} size={72} />
         <div className={styles.identity}>
           <h1 className={styles.name}>{user.name ?? user.login}</h1>
+          {card && (
+            <p className={styles.member} title={card.verified ? 'Signed in to Orion with this GitHub account' : undefined}>
+              {card.verified && <IconCheckCircle size={13} aria-hidden="true" />}
+              {card.verified ? 'Orion member, verified with GitHub' : 'Orion member'}
+            </p>
+          )}
           <p className={styles.login}>
             @{user.login}
             {user.location && (

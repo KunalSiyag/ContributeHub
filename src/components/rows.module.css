@@ -3,7 +3,7 @@
 .list {
   list-style: none;
   background: var(--surface);
-  border-radius: var(--r);
+  border-radius: var(--r-lg);
   box-shadow: var(--ring);
   overflow: hidden;
 }
