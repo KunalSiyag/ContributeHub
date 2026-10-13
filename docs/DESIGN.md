@@ -161,7 +161,7 @@ Final result: passed (no open P0–P2)
 
 | Severity | Where | Finding | Fix |
 |---|---|---|---|
-| P1 | `/collections` | OSS Insight's v1 collections API answered 500 (an upstream 401), so the page said "Collections are unavailable" and every collection was empty | Falls back to OSS Insight's older endpoints, which still answer: 138 public collections again. Tests cover both paths |
+| P1 | `/collections` | OSS Insight's v1 collections API answered 500 (an upstream 401) during the pass, so the page said "Collections are unavailable" and every collection was empty. It answered again later that day | Falls back to OSS Insight's older endpoints when v1 has nothing, so an outage no longer empties the page (138 public collections either way). Tests cover both paths |
 | P2 | `/perks`, `/companies`, `/trending`, `/starter` | Scrolling pill rows were clipped at the right edge on desktop ("Infrastru…") with no sign they scroll; six perk categories were out of sight | Rows wrap above 640px; on phones they scroll with an edge fade |
 | P2 | `/repos/compare` | Both repository inputs were 280px tall: the lookup field's flex basis became a height inside the column | The field keeps input height in the compare form |
 | P2 | `/assistant` on phones | The welcome opened scrolled to its end, hiding the title: the scroll that follows new answers also ran with no conversation | Scrolls to the top when there is no conversation |
